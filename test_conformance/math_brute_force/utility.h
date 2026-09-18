@@ -26,7 +26,12 @@
 #include "harness/parseParameters.h"
 #include "CL/cl_half.h"
 
-#define BUFFER_SIZE (1024 * 1024 * 2)
+#include <algorithm>
+#include <cstdint>
+
+#define BUFFER_SIZE                                                            \
+    (gSimtixMode ? std::max<size_t>(gSimtixSamples, 2) * sizeof(cl_float)       \
+                 : (1024 * 1024 * 2))
 #define EMBEDDED_REDUCTION_FACTOR (64)
 
 #if defined(__GNUC__)
@@ -251,8 +256,21 @@ void logFunctionInfo(const char *fname, unsigned int float_size,
 
 float getAllowedUlpError(const Func *f, Type t, const bool relaxed);
 
+inline uint64_t getSimtixSampleScale(size_t typeSize)
+{
+    const uint64_t elementCount = BUFFER_SIZE / typeSize;
+    if (elementCount == 0) return 1;
+    return ((1ULL << 32) + elementCount - 1) / elementCount;
+}
+
 inline cl_uint getTestScale(size_t typeSize)
 {
+    if (gSimtixMode)
+    {
+        const uint64_t scale = getSimtixSampleScale(typeSize);
+        return static_cast<cl_uint>(std::min<uint64_t>(scale, UINT32_MAX));
+    }
+
     if (gWimpyMode)
     {
         return (cl_uint)typeSize * 2 * gWimpyReductionFactor;
@@ -269,6 +287,8 @@ inline cl_uint getTestScale(size_t typeSize)
 
 inline uint64_t getTestStep(size_t typeSize, size_t bufferSize)
 {
+    if (gSimtixMode) return (1ULL << 32);
+
     if (gWimpyMode)
     {
         return (1ULL << 32) * gWimpyReductionFactor / (512);

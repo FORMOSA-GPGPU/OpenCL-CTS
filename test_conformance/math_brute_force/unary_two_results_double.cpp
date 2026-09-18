@@ -50,8 +50,9 @@ int TestFunc_Double2_Double(const Func *f, MTdata d, bool relaxedMode)
     double maxErrorVal0 = 0.0f;
     double maxErrorVal1 = 0.0f;
     uint64_t step = getTestStep(sizeof(cl_double), BUFFER_SIZE);
-    int scale =
-        (int)((1ULL << 32) / (16 * BUFFER_SIZE / sizeof(cl_double)) + 1);
+    uint64_t scale = gSimtixMode
+        ? getSimtixSampleScale(sizeof(cl_double))
+        : (1ULL << 32) / (16 * BUFFER_SIZE / sizeof(cl_double)) + 1;
 
     logFunctionInfo(f->name, sizeof(cl_double), relaxedMode);
 
@@ -336,7 +337,7 @@ int TestFunc_Double2_Double(const Func *f, MTdata d, bool relaxedMode)
             if (gVerboseBruteForce)
             {
                 vlog("base:%14" PRIu64 " step:%10" PRIu64
-                     "  bufferSize:%10d \n",
+                     "  bufferSize:%10zu \n",
                      i, step, BUFFER_SIZE);
             }
             else

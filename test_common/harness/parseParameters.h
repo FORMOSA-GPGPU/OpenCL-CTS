@@ -43,8 +43,15 @@ extern bool gDisableSPIRVValidation;
 extern std::string gSPIRVValidator;
 extern bool gListTests;
 extern bool gWimpyMode;
+extern bool gSimtixMode;
+extern size_t gSimtixSamples;
 extern unsigned gNumWorkerThreads;
 extern unsigned gNumThreadPoolThreads;
+
+// Limit the common harness workload when running on the simulator.
+extern int capSimtixNumElements(int num_elements, int minimum = 1);
+extern unsigned capSimtixDimension(unsigned dimensions, unsigned max_dimension);
+extern int capSimtixExponent(int max_exponent);
 
 extern int
 parseCommonParamAndGetRemovedArgs(int argc, const char *argv[],

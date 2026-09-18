@@ -899,10 +899,11 @@ int Test_vStoreHalf_private(cl_device_id device, f2h referenceFunc,
         lastCase = 1ULL << 32;
     else if (gWimpyMode)
         lastCase /= gWimpyReductionFactor;
+    if (gSimtixMode) lastCase = std::min(lastCase, (uint64_t)gSimtixSamples);
 
     uint64_t i, j;
     error = 0;
-    uint64_t printMask = (lastCase >> 4) - 1;
+    uint64_t printMask = lastCase > 16 ? (lastCase >> 4) - 1 : 0;
     cl_uint count = 0;
     int addressSpace;
     size_t loopCount;
@@ -1750,10 +1751,11 @@ int Test_vStoreaHalf_private(cl_device_id device, f2h referenceFunc,
     {
         lastCase /= gWimpyReductionFactor;
     }
+    if (gSimtixMode) lastCase = std::min(lastCase, (uint64_t)gSimtixSamples);
 
     uint64_t i, j;
     error = 0;
-    uint64_t printMask = (lastCase >> 4) - 1;
+    uint64_t printMask = lastCase > 16 ? (lastCase >> 4) - 1 : 0;
     cl_uint count = 0;
     int addressSpace;
     size_t loopCount;

@@ -19,7 +19,12 @@
 #include "testHarness.h"
 #include "ThreadPool.h"
 
+#include <algorithm>
+#include <cerrno>
+#include <cstdint>
+#include <cstdlib>
 #include <iostream>
+#include <limits>
 #include <sstream>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -38,6 +43,63 @@ unsigned gNumWorkerThreads;
 unsigned gNumThreadPoolThreads = 0;
 bool gListTests = false;
 bool gWimpyMode = false;
+bool gSimtixMode = false;
+size_t gSimtixSamples = 64;
+
+int capSimtixNumElements(int num_elements, int minimum)
+{
+    if (!gSimtixMode || num_elements <= 0) return num_elements;
+
+    const size_t floor = minimum > 0 ? static_cast<size_t>(minimum) : 1;
+    const size_t limit = std::max(gSimtixSamples, floor);
+    return limit >= static_cast<size_t>(num_elements)
+        ? num_elements
+        : static_cast<int>(limit);
+}
+
+unsigned capSimtixDimension(unsigned dimensions, unsigned max_dimension)
+{
+    if (!gSimtixMode || dimensions == 0 || max_dimension <= 1)
+        return max_dimension;
+
+    unsigned low = 1;
+    unsigned high = max_dimension;
+    while (low < high)
+    {
+        const unsigned middle = low + (high - low + 1) / 2;
+        size_t work_items = 1;
+        bool fits = true;
+        for (unsigned dimension = 0; dimension < dimensions; ++dimension)
+        {
+            if (work_items > gSimtixSamples / middle)
+            {
+                fits = false;
+                break;
+            }
+            work_items *= middle;
+        }
+
+        if (fits)
+            low = middle;
+        else
+            high = middle - 1;
+    }
+    return low;
+}
+
+int capSimtixExponent(int max_exponent)
+{
+    if (!gSimtixMode || max_exponent <= 0) return max_exponent;
+
+    int exponent = 0;
+    size_t values = 1;
+    while (exponent < max_exponent && values <= gSimtixSamples / 2)
+    {
+        values *= 2;
+        ++exponent;
+    }
+    return exponent;
+}
 
 void helpInfo()
 {
@@ -54,6 +116,10 @@ void helpInfo()
         Select parallel execution with the specified number of worker threads.
     --list
         List sub-tests
+    --simtix
+        Enable simulator mode (wimpy tests and one host worker/thread).
+    --simtix-samples <num>
+        Set the simulator workload/sample budget (default: 64).
     -w, --wimpy
         Enable wimpy mode. It does not impact all tests. Impacted tests will run
         with a very small subset of the tests. This option should not be used
@@ -97,12 +163,35 @@ For spir-v mode only:
         "\n");
 }
 
+static bool parsePositiveSize(const char *text, size_t &value)
+{
+    if (text == nullptr || text[0] == '\0' || text[0] == '-') return false;
+    for (const char *p = text; *p != '\0'; ++p)
+    {
+        if (*p < '0' || *p > '9') return false;
+    }
+
+    errno = 0;
+    char *end = nullptr;
+    const unsigned long long parsed = strtoull(text, &end, 10);
+    if (errno == ERANGE || end == text || *end != '\0' || parsed == 0
+        || parsed > std::numeric_limits<size_t>::max()
+        || parsed > std::numeric_limits<size_t>::max() / sizeof(float))
+    {
+        return false;
+    }
+
+    value = static_cast<size_t>(parsed);
+    return true;
+}
+
 int parseCommonParamAndGetRemovedArgs(int argc, const char *argv[],
                                       std::vector<std::string> &removed_args,
                                       bool &help)
 {
     int delArg = 0;
     help = false;
+    bool simtixSamplesSpecified = false;
 
     for (int i = 1; i < argc; i++)
     {
@@ -124,6 +213,36 @@ int parseCommonParamAndGetRemovedArgs(int argc, const char *argv[],
             delArg++;
             removed_args.push_back("--list");
             gListTests = true;
+        }
+        else if (!strcmp(argv[i], "--simtix"))
+        {
+            delArg++;
+            removed_args.push_back("--simtix");
+            gSimtixMode = true;
+            gWimpyMode = true;
+        }
+        else if (!strcmp(argv[i], "--simtix-samples"))
+        {
+            delArg++;
+            if ((i + 1) < argc)
+            {
+                delArg++;
+                if (!parsePositiveSize(argv[i + 1], gSimtixSamples))
+                {
+                    log_error(
+                        "A parameter to --simtix-samples must be a positive "
+                        "integer that fits in the sample buffer.\n");
+                    return -1;
+                }
+                simtixSamplesSpecified = true;
+            }
+            else
+            {
+                log_error(
+                    "A parameter to --simtix-samples must be provided!\n");
+                return -1;
+            }
+            removed_args.push_back(std::string(argv[i]) + " " + argv[i + 1]);
         }
         else if (!strcmp(argv[i], "--wimpy") || !strcmp(argv[i], "-w"))
         {
@@ -362,6 +481,19 @@ int parseCommonParamAndGetRemovedArgs(int argc, const char *argv[],
     {
         log_error("Compilation cache mode can only be specified when using an "
                   "offline compilation mode.\n");
+        return -1;
+    }
+
+    if (gSimtixMode)
+    {
+        // Simulator runs must not create parallel host or in-test workloads.
+        gWimpyMode = true;
+        gNumWorkerThreads = 1;
+        gNumThreadPoolThreads = 1;
+    }
+    else if (simtixSamplesSpecified)
+    {
+        log_error("--simtix-samples requires --simtix.\n");
         return -1;
     }
 

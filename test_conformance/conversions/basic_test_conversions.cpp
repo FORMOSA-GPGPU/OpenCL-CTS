@@ -458,6 +458,7 @@ int ConversionsTest::DoTest(Type outType, Type inType, SaturationMode sat,
     gTestCount++;
     size_t blockCount =
         BUFFER_SIZE / std::max(gTypeSizes[inType], gTypeSizes[outType]);
+    if (gSimtixMode) blockCount = std::min(blockCount, gSimtixSamples);
     size_t step = blockCount;
 
     for (i = 0; i < threads; i++)
@@ -534,6 +535,7 @@ int ConversionsTest::DoTest(Type outType, Type inType, SaturationMode sat,
             }
         }
     }
+    if (gSimtixMode) nbInputs = gSimtixSamples;
     // Make sure we can do at least one step even if the user reduced it with
     // the wimpy or embedded reduction factor.
     nbInputs = std::max(nbInputs, (uint64_t)step);

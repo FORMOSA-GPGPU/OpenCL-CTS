@@ -705,17 +705,18 @@ int runTestHarnessWithCheckAndParse(int argc, const char *argv[], int testNum,
     }
 
     if (num_elements <= 0) num_elements = DEFAULT_NUM_ELEMENTS;
+    num_elements = capSimtixNumElements(num_elements);
 
-        // On most platforms which support denorm, default is FTZ off. However,
-        // on some hardware where the reference is computed, default might be
-        // flush denorms to zero e.g. arm. This creates issues in result
-        // verification. Since spec allows the implementation to either flush or
-        // not flush denorms to zero, an implementation may choose not be flush
-        // i.e. return denorm result whereas reference result may be zero
-        // (flushed denorm). Hence we need to disable denorm flushing on host
-        // side where reference is being computed to make sure we get
-        // non-flushed reference result. If implementation returns flushed
-        // result, we correctly take care of that in verification code.
+    // On most platforms which support denorm, default is FTZ off. However,
+    // on some hardware where the reference is computed, default might be
+    // flush denorms to zero e.g. arm. This creates issues in result
+    // verification. Since spec allows the implementation to either flush or
+    // not flush denorms to zero, an implementation may choose not be flush
+    // i.e. return denorm result whereas reference result may be zero
+    // (flushed denorm). Hence we need to disable denorm flushing on host
+    // side where reference is being computed to make sure we get
+    // non-flushed reference result. If implementation returns flushed
+    // result, we correctly take care of that in verification code.
 #if defined(__APPLE__) && defined(__arm__)
     FPU_mode_type oldMode;
     DisableFTZ(&oldMode);

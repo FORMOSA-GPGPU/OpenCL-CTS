@@ -531,6 +531,8 @@ int test_thread_dimensions(cl_device_id device, cl_context context,
         return 0;
     }
 
+    if (gSimtixMode) max_dim = capSimtixDimension(dimensions, max_dim);
+
     // Unconditionally test larger sizes for CL 1.1
     log_info("Testing large global dimensions.\n");
     limit_size = 0;
@@ -638,6 +640,15 @@ int test_thread_dimensions(cl_device_id device, cl_context context,
     max_memory_size = bufferSize ? bufferSize : (cl_uint)(max_allocation);
     if (max_memory_size > 512 * 1024 * 1024)
         max_memory_size = 512 * 1024 * 1024;
+    if (gSimtixMode)
+    {
+        const size_t simtix_memory_size =
+            gSimtixSamples > SIZE_MAX / sizeof(cl_uint)
+            ? SIZE_MAX
+            : gSimtixSamples * sizeof(cl_uint);
+        if (simtix_memory_size < max_memory_size)
+            max_memory_size = (cl_uint)simtix_memory_size;
+    }
     memory_size = max_memory_size;
 
     log_info(

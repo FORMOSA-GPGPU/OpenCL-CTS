@@ -493,6 +493,10 @@ test_integer_ops_threaded(cl_device_id deviceID, cl_context context, cl_command_
     }
   }
 
+    // Every integer generator writes its 6x6 special-case pairs first.
+    num_elements = capSimtixNumElements(num_elements, 36);
+    num_runs_shift = capSimtixExponent(num_runs_shift);
+
     // This test will run threadcount threads concurrently; each thread will execute test_integer_ops()
     // which will allocate 2 OpenCL buffers on the device; each buffer has size num_elements * type_size * vectorSize.
     // We need to make sure that the total device memory allocated by all threads does not exceed the maximum

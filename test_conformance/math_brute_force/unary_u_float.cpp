@@ -47,7 +47,9 @@ int TestFunc_Float_UInt(const Func *f, MTdata d, bool relaxedMode)
     int ftz = f->ftz || gForceFTZ || 0 == (CL_FP_DENORM & gFloatCapabilities);
     float maxErrorVal = 0.0f;
     uint64_t step = getTestStep(sizeof(float), BUFFER_SIZE);
-    int scale = (int)((1ULL << 32) / (16 * BUFFER_SIZE / sizeof(double)) + 1);
+    uint64_t scale = gSimtixMode
+        ? getSimtixSampleScale(sizeof(float))
+        : (1ULL << 32) / (16 * BUFFER_SIZE / sizeof(double)) + 1;
 
     logFunctionInfo(f->name, sizeof(cl_float), relaxedMode);
 
@@ -210,7 +212,7 @@ int TestFunc_Float_UInt(const Func *f, MTdata d, bool relaxedMode)
             if (gVerboseBruteForce)
             {
                 vlog("base:%14" PRIu64 " step:%10" PRIu64
-                     "  bufferSize:%10d \n",
+                     "  bufferSize:%10zu \n",
                      i, step, BUFFER_SIZE);
             }
             else
