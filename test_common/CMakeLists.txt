@@ -25,6 +25,6 @@ add_library(harness STATIC ${HARNESS_SOURCES})
 
 if(BUILD_TESTING)
     add_executable(test_simtix_options harness/parseParameters_test.cpp)
-    target_link_libraries(test_simtix_options PRIVATE harness)
+    target_link_libraries(test_simtix_options PRIVATE harness ${OPENCL_LIBRARIES})
     add_test(NAME simtix_options COMMAND test_simtix_options)
 endif()

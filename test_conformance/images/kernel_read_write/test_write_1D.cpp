@@ -691,7 +691,7 @@ int test_write_image_1D_set(cl_device_id device, cl_context context,
                 return retCode;
         }
     }
-    else if (ctx.testMaxImages)
+    else if (ctx.testMaxImages || gSimtixMode)
     {
         // Try a specific set of maximum sizes
         size_t numbeOfSizes;

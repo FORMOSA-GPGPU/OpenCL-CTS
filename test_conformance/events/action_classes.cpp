@@ -14,6 +14,7 @@
 // limitations under the License.
 //
 #include "action_classes.h"
+#include "harness/parseParameters.h"
 
 #pragma mark -------------------- Base Action Class -------------------------
 
@@ -61,6 +62,12 @@ cl_int Action::IGetPreferredImageSize2D(cl_device_id device, size_t &outWidth,
 
     if (outWidth > 2048) outWidth = 2048;
     if (outHeight > 2048) outHeight = 2048;
+    if (gSimtixMode)
+    {
+        const size_t side = capSimtixDimension(2, 2048);
+        outWidth = std::min(outWidth, side);
+        outHeight = std::min(outHeight, side);
+    }
     log_info("\tImage size: %d x %d (%gMB)\n", (int)outWidth, (int)outHeight,
              (double)((int)outWidth * (int)outHeight * 4) / (1024.0 * 1024.0));
     return CL_SUCCESS;
@@ -118,6 +125,13 @@ cl_int Action::IGetPreferredImageSize3D(cl_device_id device, size_t &outWidth,
     if (outWidth > 512) outWidth = 512;
     if (outHeight > 512) outHeight = 512;
     if (outDepth > 512) outDepth = 512;
+    if (gSimtixMode)
+    {
+        const size_t side = capSimtixDimension(3, 512);
+        outWidth = std::min(outWidth, side);
+        outHeight = std::min(outHeight, side);
+        outDepth = std::min(outDepth, side);
+    }
     log_info("\tImage size: %d x %d x %d (%gMB)\n", (int)outWidth,
              (int)outHeight, (int)outDepth,
              (double)((int)outWidth * (int)outHeight * (int)outDepth * 4)
@@ -131,21 +145,23 @@ cl_int Action::IGetPreferredImageSize3D(cl_device_id device, size_t &outWidth,
 cl_int NDRangeKernelAction::Setup(cl_device_id device, cl_context context,
                                   cl_command_queue queue)
 {
-    const char *long_kernel[] = {
+    const std::string source =
         "__kernel void sample_test(__global float *src, __global int *dst)\n"
         "{\n"
         "    int  tid = get_global_id(0);\n"
         "     int  i;\n"
         "\n"
-        "    for( i = 0; i < 100000; i++ )\n"
-        "    {\n"
-        "        dst[tid] = (int)src[tid] * 3;\n"
-        "    }\n"
-        "\n"
-        "}\n"
-    };
+        "    for( i = 0; i < "
+        + std::to_string(capSimtixNumElements(100000))
+        + "; i++ )\n"
+          "    {\n"
+          "        dst[tid] = (int)src[tid] * 3;\n"
+          "    }\n"
+          "\n"
+          "}\n";
+    const char *long_kernel[] = { source.c_str() };
 
-    size_t threads[1] = { 1000 };
+    size_t threads[1] = { size_t(capSimtixNumElements(1000)) };
     int error;
 
     if (create_single_kernel_helper(context, &mProgram, &mKernel, 1,
@@ -159,10 +175,10 @@ cl_int NDRangeKernelAction::Setup(cl_device_id device, cl_context context,
     test_error(error, "Unable to get work group size to use");
 
     mStreams[0] = clCreateBuffer(context, CL_MEM_READ_WRITE,
-                                 sizeof(cl_float) * 1000, NULL, &error);
+                                 sizeof(cl_float) * threads[0], NULL, &error);
     test_error(error, "Creating test array failed");
     mStreams[1] = clCreateBuffer(context, CL_MEM_READ_WRITE,
-                                 sizeof(cl_int) * 1000, NULL, &error);
+                                 sizeof(cl_int) * threads[0], NULL, &error);
     test_error(error, "Creating test array failed");
 
     /* Set the arguments */
@@ -177,7 +193,7 @@ cl_int NDRangeKernelAction::Setup(cl_device_id device, cl_context context,
 cl_int NDRangeKernelAction::Execute(cl_command_queue queue, cl_uint numWaits,
                                     cl_event *waits, cl_event *outEvent)
 {
-    size_t threads[1] = { 1000 };
+    size_t threads[1] = { size_t(capSimtixNumElements(1000)) };
     cl_int error =
         clEnqueueNDRangeKernel(queue, mKernel, 1, NULL, threads, mLocalThreads,
                                numWaits, waits, outEvent);
@@ -207,6 +223,9 @@ cl_int BufferAction::Setup(cl_device_id device, cl_context context,
     if (mSize > 128 << 20) mSize = 128 << 20;
 
     mSize /= 2;
+    if (gSimtixMode)
+        mSize = std::min(
+            mSize, size_t(capSimtixNumElements(64 << 20)) * sizeof(cl_uint));
 
     log_info("\tBuffer size: %gMB\n", (double)mSize / (1024.0 * 1024.0));
 

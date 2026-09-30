@@ -14,6 +14,8 @@
 // limitations under the License.
 //
 #include "testBase.h"
+#include "harness/parseParameters.h"
+#include <climits>
 
 #include <algorithm>
 #include <vector>
@@ -215,6 +217,18 @@ cl_int get_reasonable_buffer_size( cl_device_id device, size_t &outSize )
     if ( outSize > 32 << 20 )
         outSize = 32 << 20;
 
+    if (gSimtixMode)
+    {
+        cl_uint alignmentBits;
+        error = clGetDeviceInfo(device, CL_DEVICE_MEM_BASE_ADDR_ALIGN,
+                                sizeof(alignmentBits), &alignmentBits, NULL);
+        test_error(error, "Unable to get sub-buffer alignment");
+        // Retain room for the aligned overlapping and non-overlapping sets.
+        size_t alignment = std::max<size_t>(1, alignmentBits / 8);
+        outSize =
+            std::min(outSize, alignment * capSimtixNumElements(INT_MAX, 256));
+    }
+
     return CL_SUCCESS;
 }
 
@@ -276,8 +290,11 @@ static int test_sub_buffers_read_write_core(cl_context context,
         test_error( error, "Unable to allocate sub buffer" );
 
         toStartFrom = offset + size;
-        if ( toStartFrom > ( mainSize - ( addressAlign * 256 ) ) )
+        if (toStartFrom > mainSize - addressAlign * (gSimtixMode ? 8 : 256))
+        {
+            if (gSimtixMode) ++numSubBuffers;
             break;
+        }
     }
 
     ReadWriteAction rwAction;
@@ -295,9 +312,13 @@ static int test_sub_buffers_read_write_core(cl_context context,
     {
         // Randomly apply actions to the set of sub buffers
         size_t i;
-        for (  i = 0; i < 64; i++ )
+        const int actionsPerRound =
+            gSimtixMode ? std::max(4, capSimtixNumElements(64) / 8) : 64;
+        for (i = 0; i < size_t(actionsPerRound); i++)
         {
-            int which = random_in_range( 0, 3, Action::GetRandSeed() );
+            int which = gSimtixMode
+                ? i % 4
+                : random_in_range(0, 3, Action::GetRandSeed());
             int whichQueue = random_in_range( 0, 1, Action::GetRandSeed() );
             int whichBufferA = random_in_range( 0, (int)numSubBuffers - 1, Action::GetRandSeed() );
             int whichBufferB;

@@ -16,6 +16,7 @@
 #include "harness/compat.h"
 
 #include "testBase.h"
+#include "harness/parseParameters.h"
 #include "harness/testHarness.h"
 #include "harness/typeWrappers.h"
 #include "harness/conversions.h"
@@ -86,7 +87,7 @@ const char *oneToOneKernelPatternV3 =
 "\n"
 "}\n";
 
-#define TEST_SIZE (1 << 20)
+#define TEST_SIZE capSimtixNumElements(1 << 20)
 
 double verifyFastDistance( float *srcA, float *srcB, size_t vecSize );
 double verifyFastLength( float *srcA, size_t vecSize );
@@ -113,6 +114,16 @@ void fillWithTrickyNumbers( float *aVectors, float *bVectors, size_t vecSize )
         MAKE_HEX_FLOAT(0x1.0p-63f, 0x1L, -63), MAKE_HEX_FLOAT(0x1.8p-63f, 0x18L, -67), MAKE_HEX_FLOAT(0x1.0p-64f, 0x1L, -64), MAKE_HEX_FLOAT(-0x1.0p-63f, -0x1L, -63), MAKE_HEX_FLOAT(-0x1.8p-63f, -0x18L, -67), MAKE_HEX_FLOAT(-0x1.0p-64f, -0x1L, -64),
         FLT_MAX / 2.f, -FLT_MAX / 2.f, INFINITY,  -INFINITY, 0.f, -0.f };
     static const size_t trickyCount = sizeof( trickyValues ) / sizeof( trickyValues[0] );
+    if (gSimtixMode)
+    {
+        for (size_t i = 0; i < size_t(TEST_SIZE) * vecSize; ++i)
+        {
+            aVectors[i] = trickyValues[i % trickyCount];
+            if (bVectors)
+                bVectors[i] = trickyValues[(i + vecSize) % trickyCount];
+        }
+        return;
+    }
     static const size_t stride[4] = {1, trickyCount, trickyCount*trickyCount, trickyCount*trickyCount*trickyCount };
     size_t i, j, k;
 
@@ -410,7 +421,7 @@ int test_twoToFloat_kernel(cl_command_queue queue, cl_context context, const cha
 
     /* And verify! */
     int skipCount = 0;
-    for( i = 0; i < TEST_SIZE; i++ )
+    for (i = 0; i < size_t(TEST_SIZE); i++)
     {
         cl_float *src1 = inDataA + i * vecSize;
         cl_float *src2 = inDataB + i * vecSize;
@@ -716,7 +727,7 @@ int test_oneToFloat_kernel(cl_command_queue queue, cl_context context, const cha
     test_error( error, "Unable to read output array!" );
 
     /* And verify! */
-    for( i = 0; i < TEST_SIZE; i++ )
+    for (i = 0; i < size_t(TEST_SIZE); i++)
     {
         double expected = verifyFn( inDataA + i * vecSize, vecSize );
         if( (float) expected != outData[ i ] )
@@ -927,7 +938,7 @@ int test_oneToOne_kernel(cl_command_queue queue, cl_context context, const char 
     test_error( error, "Unable to read output array!" );
 
     /* And verify! */
-    for( i = 0; i < TEST_SIZE; i++ )
+    for (i = 0; i < size_t(TEST_SIZE); i++)
     {
         float expected[4];
         int fail = 0;
@@ -1127,6 +1138,3 @@ REGISTER_TEST(geom_fast_normalize)
     }
     return retVal;
 }
-
-
-

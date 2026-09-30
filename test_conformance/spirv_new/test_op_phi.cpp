@@ -85,7 +85,7 @@ int test_phi(cl_device_id deviceID,
 
 REGISTER_TEST(op_phi_2_blocks)
 {
-    const int num = 1 << 10;
+    const int num = capSimtixNumElements(1 << 10, 16);
     RandomSeed seed(gRandomSeed);
 
     std::vector<cl_uint> lhs(num);
@@ -103,7 +103,7 @@ REGISTER_TEST(op_phi_2_blocks)
 
 REGISTER_TEST(op_phi_3_blocks)
 {
-    const int num = 1 << 10;
+    const int num = capSimtixNumElements(1 << 10, 16);
     RandomSeed seed(gRandomSeed);
 
     std::vector<cl_uint> lhs(num);
@@ -125,7 +125,7 @@ REGISTER_TEST(op_phi_3_blocks)
 
 REGISTER_TEST(op_phi_4_blocks)
 {
-    const int num = 1 << 10;
+    const int num = capSimtixNumElements(1 << 10, 16);
     RandomSeed seed(gRandomSeed);
 
     std::vector<cl_uint> lhs(num);

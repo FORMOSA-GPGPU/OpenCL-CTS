@@ -14,6 +14,7 @@
 // limitations under the License.
 //
 #include "harness/testHarness.h"
+#include "harness/parseParameters.h"
 
 #include "harness/kernelHelpers.h"
 #include "harness/typeWrappers.h"
@@ -5018,7 +5019,9 @@ public:
                   "memory_order_relaxed"
                 + MemoryScopeStr()
                 + ");\n"
-                  "  } while(myValue == hisValue && myValue < 500000);\n"
+                  "  } while(myValue == hisValue && myValue < "
+                + std::to_string(capSimtixNumElements(500000, 2))
+                + ");\n"
                   "  "
                 + nonAtomic + "[myId] = hisValue; \n";
         }
@@ -5144,7 +5147,8 @@ public:
                 host_atomic_thread_fence(MemoryOrder());
                 hisValue = host_atomic_load<HostAtomicType, HostDataType>(
                     &destMemory[hisId], MEMORY_ORDER_RELAXED);
-            } while (myValue == hisValue && hisValue < 500000);
+            } while (myValue == hisValue
+                     && hisValue < capSimtixNumElements(500000, 2));
             oldValues[tid] = hisValue;
         }
         else
@@ -5226,11 +5230,12 @@ public:
                     {
                         // a draw - both threads should reach final value
                         // 500000
-                        if (myValue != 500000)
+                        if (myValue != capSimtixNumElements(500000, 2))
                         {
                             log_error("ERROR: Invalid reference value #%u (%d "
-                                      "instead of 500000)\n",
-                                      workOffset + i, myValue);
+                                      "instead of %d)\n",
+                                      workOffset + i, myValue,
+                                      capSimtixNumElements(500000, 2));
                             correct = false;
                             return true;
                         }

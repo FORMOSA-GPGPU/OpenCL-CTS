@@ -17,6 +17,7 @@
 #define _testBase_h
 
 #include "harness/compat.h"
+#include "harness/parseParameters.h"
 #include "harness/testHarness.h"
 #include "harness/kernelHelpers.h"
 #include "harness/clImageHelper.h"
@@ -104,6 +105,3 @@ extern int test_write_image_formats(
     const image_test_context_t &ctx);
 
 #endif // _testBase_h
-
-
-

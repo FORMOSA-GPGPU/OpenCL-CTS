@@ -117,7 +117,7 @@ int test_insert(cl_device_id deviceID, cl_context context,
         }                                                                      \
         typedef cl_##TYPE##N Tv;                                               \
         typedef cl_##TYPE Ts;                                                  \
-        const int num = 1 << 20;                                               \
+        const int num = capSimtixNumElements(1 << 20, 16);                     \
         std::vector<Ts> in(num);                                               \
         const char *name = "vector_" #TYPE #N "_insert";                       \
                                                                                \

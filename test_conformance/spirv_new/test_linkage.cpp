@@ -77,7 +77,7 @@ REGISTER_TEST(linkage_import_function_link)
     clKernelWrapper kernel = clCreateKernel(prog, "test_linkage", &err);
     SPIRV_CHECK_ERROR(err, "Failed to create spv kernel");
 
-    const int num = 1 << 20;
+    const int num = capSimtixNumElements(1 << 20, 16);
     std::vector<cl_float> h_in(num);
     RandomSeed seed(gRandomSeed);
     for (int i = 0; i < num; i++) {

@@ -37,7 +37,7 @@ static int verify_results(cl_device_id deviceID,
                           const char *kname,
                           const clProgramWrapper &prog)
 {
-    const int num = 1 << 20;
+    const int num = capSimtixNumElements(1 << 20, 16);
     std::vector<cl_int> h_lhs(num);
     std::vector<cl_int> h_rhs(num);
 
@@ -142,7 +142,7 @@ REGISTER_TEST(decorate_cpacked)
 
     typedef struct packed_struct_t packed_t;
 
-    const int num = 1 << 20;
+    const int num = capSimtixNumElements(1 << 20, 16);
 
     std::vector<packed_t> packed(num);
     clProgramWrapper prog;
@@ -283,7 +283,7 @@ int verify_saturated_results(cl_device_id deviceID, cl_context context,
 {
     cl_int err = 0;
 
-    const int num = 1 << 20;
+    const int num = capSimtixNumElements(1 << 20, 16);
 
     clKernelWrapper kernel = clCreateKernel(prog, kname, &err);
     SPIRV_CHECK_ERROR(err, "Failed to create spv kernel");
@@ -545,7 +545,7 @@ static inline Ti generate_fprounding_input(RandomSeed &seed)
     {                                                                          \
         typedef cl_##Ti clTi;                                                  \
         typedef cl_##To clTo;                                                  \
-        const int num = 1 << 16;                                               \
+        const int num = capSimtixNumElements(1 << 16, 16);                     \
         std::vector<clTi> in(num);                                             \
         std::vector<clTo> out(num);                                            \
         RandomSeed seed(gRandomSeed);                                          \

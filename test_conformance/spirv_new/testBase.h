@@ -20,6 +20,7 @@
 #define _testBase_h
 
 #include "harness/compat.h"
+#include "harness/parseParameters.h"
 #include "harness/mathHelpers.h"
 #include "harness/rounding_mode.h"
 

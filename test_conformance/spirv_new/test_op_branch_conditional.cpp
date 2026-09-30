@@ -86,7 +86,7 @@ int test_branch_conditional(cl_device_id deviceID,
 #define TEST_BRANCH_CONDITIONAL(name)                                          \
     REGISTER_TEST(op_##name)                                                   \
     {                                                                          \
-        const int num = 1 << 10;                                               \
+        const int num = capSimtixNumElements(1 << 10, 16);                     \
         RandomSeed seed(gRandomSeed);                                          \
                                                                                \
         std::vector<cl_uint> lhs(num);                                         \

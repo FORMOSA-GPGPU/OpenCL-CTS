@@ -86,7 +86,7 @@ int test_op_lifetime(cl_device_id deviceID,
 #define TEST_LIFETIME(name)                                                    \
     REGISTER_TEST(op_##name)                                                   \
     {                                                                          \
-        const int num = 1 << 10;                                               \
+        const int num = capSimtixNumElements(1 << 10, 16);                     \
         RandomSeed seed(gRandomSeed);                                          \
                                                                                \
         std::vector<cl_int> lhs(num);                                          \

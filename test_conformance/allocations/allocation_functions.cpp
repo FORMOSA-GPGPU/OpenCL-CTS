@@ -15,6 +15,7 @@
 //
 #include "allocation_functions.h"
 #include "allocation_fill.h"
+#include "harness/parseParameters.h"
 
 
 static cl_image_format image_format = { CL_RGBA, CL_UNSIGNED_INT32 };
@@ -192,6 +193,12 @@ int allocate_size(cl_context context, cl_command_queue *queue,
         get_device_info_max_mem_alloc_size(device_id);
     global_mem_size = get_device_info_global_mem_size(device_id);
 
+    if (gSimtixMode)
+        max_individual_allocation_size =
+            std::min(max_individual_allocation_size,
+                     cl_ulong(multiple_allocations ? size_to_allocate / 2
+                                                   : size_to_allocate));
+
     if (global_mem_size > (cl_ulong)SIZE_MAX)
     {
         global_mem_size = (cl_ulong)SIZE_MAX;
@@ -227,6 +234,7 @@ int allocate_size(cl_context context, cl_command_queue *queue,
     }
 
     reduction_amount = (size_t)max_individual_allocation_size / 16;
+    if (gSimtixMode) reduction_amount = std::max(size_t(1), reduction_amount);
 
     if (type == BUFFER || type == BUFFER_NON_BLOCKING)
         log_info("\tAttempting to allocate a buffer of size %gMB.\n",

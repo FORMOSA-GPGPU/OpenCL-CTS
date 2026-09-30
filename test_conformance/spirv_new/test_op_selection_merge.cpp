@@ -86,7 +86,7 @@ int test_selection_merge(cl_device_id deviceID,
 #define TEST_SELECT_IF(control)                                                \
     REGISTER_TEST(op_selection_merge_if_##control)                             \
     {                                                                          \
-        const int num = 1 << 10;                                               \
+        const int num = capSimtixNumElements(1 << 10, 16);                     \
         RandomSeed seed(gRandomSeed);                                          \
                                                                                \
         std::vector<cl_uint> lhs(num);                                         \
@@ -111,7 +111,7 @@ TEST_SELECT_IF(dont_flatten)
 #define TEST_SELECT_SWITCH(control)                                            \
     REGISTER_TEST(op_selection_merge_swith_##control)                          \
     {                                                                          \
-        const int num = 1 << 10;                                               \
+        const int num = capSimtixNumElements(1 << 10, 16);                     \
         RandomSeed seed(gRandomSeed);                                          \
                                                                                \
         std::vector<cl_uint> lhs(num);                                         \

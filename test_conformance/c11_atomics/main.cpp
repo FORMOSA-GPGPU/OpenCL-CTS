@@ -14,6 +14,7 @@
 // limitations under the License.
 //
 #include "harness/testHarness.h"
+#include "harness/parseParameters.h"
 #include "harness/deviceInfo.h"
 #include "harness/kernelHelpers.h"
 #include <iostream>
@@ -43,6 +44,12 @@ cl_device_fp_atomic_capabilities_ext gFloatAtomicCaps = 0;
 cl_device_fp_config gHalfFPConfig = 0;
 
 test_status InitCL(cl_device_id device) {
+    if (gSimtixMode)
+    {
+        gInternalIterations = capSimtixNumElements(gInternalIterations, 2);
+        gInternalIterations -= gInternalIterations % 2;
+        gMaxDeviceThreads = capSimtixNumElements(gMaxDeviceThreads, 2);
+    }
     auto version = get_device_cl_version(device);
     auto expected_min_version = Version(2, 0);
 

@@ -70,7 +70,7 @@ int test_function(cl_device_id deviceID,
 #define TEST_FUNCTION(TYPE)                                                    \
     REGISTER_TEST(function_##TYPE)                                             \
     {                                                                          \
-        int num = 1 << 20;                                                     \
+        int num = capSimtixNumElements(1 << 20, 16);                           \
         std::vector<cl_float> in(num);                                         \
         RandomSeed seed(gRandomSeed);                                          \
         for (int i = 0; i < num; i++)                                          \

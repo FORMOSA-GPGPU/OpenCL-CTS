@@ -127,6 +127,12 @@ static test_status parseArgs(int &argc, const char *argv[],
 
     if (ctx.testSmallImages) log_info("Note: Using small test images\n");
 
+    if (gSimtixMode)
+    {
+        ctx.testSmallImages = false;
+        ctx.testMaxImages = true;
+    }
+
     update_argc_argv_from_args_list(argList, argc, argv);
     return TEST_PASS;
 }

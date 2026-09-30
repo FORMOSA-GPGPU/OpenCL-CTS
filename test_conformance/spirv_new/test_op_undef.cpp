@@ -29,7 +29,7 @@ int test_undef(cl_device_id deviceID, cl_context context,
             return 0;
         }
     }
-    int num = (int)(1 << 10);
+    int num = capSimtixNumElements(1 << 10, 16);
     cl_int err = CL_SUCCESS;
 
     clProgramWrapper prog;

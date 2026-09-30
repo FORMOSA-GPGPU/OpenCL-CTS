@@ -14,6 +14,7 @@
 // limitations under the License.
 //
 #include "imageHelpers.h"
+#include "parseParameters.h"
 #include <limits.h>
 #include <assert.h>
 #if defined(__APPLE__)
@@ -880,6 +881,38 @@ void get_max_sizes(
             break;
     }
 
+
+    if (gSimtixMode)
+    {
+        unsigned dimensions = 3;
+        if (image_type == CL_MEM_OBJECT_IMAGE1D
+            || image_type == CL_MEM_OBJECT_IMAGE1D_BUFFER)
+            dimensions = 1;
+        else if (image_type == CL_MEM_OBJECT_IMAGE2D
+                 || image_type == CL_MEM_OBJECT_IMAGE1D_ARRAY)
+            dimensions = 2;
+
+        const size_t side = std::max(4u, capSimtixDimension(dimensions, 1024));
+        *numberOfSizes = std::min(maxNumberOfSizes, 2);
+        for (size_t i = 0; i < *numberOfSizes; ++i)
+        {
+            for (unsigned d = 0; d < 3; ++d)
+                sizes[i][d] = d < dimensions
+                    ? std::min(maximum_sizes[d], std::max(size_t(4), side - i))
+                    : 1;
+            while (sizes[i][0] * sizes[i][1] * sizes[i][2] > max_pixels)
+            {
+                auto largest = std::max_element(sizes[i], sizes[i] + 3);
+                if (*largest <= 1)
+                {
+                    *numberOfSizes = 0;
+                    return;
+                }
+                *largest = (*largest + 1) / 2;
+            }
+        }
+        return;
+    }
 
         // Given one fixed sized dimension, this code finds one or two other
         // dimensions, both with very small size, such that the size does not

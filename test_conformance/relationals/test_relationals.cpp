@@ -17,6 +17,7 @@
 #include "harness/conversions.h"
 #include "harness/typeWrappers.h"
 #include "harness/testHarness.h"
+#include "harness/parseParameters.h"
 
 #include <array>
 
@@ -133,6 +134,8 @@ int test_any_all_kernel(cl_context context, cl_command_queue queue,
     clMemWrapper streams[2];
     cl_long inDataA[TEST_SIZE * 16], clearData[TEST_SIZE * 16];
     int outData[TEST_SIZE];
+    const int testSize =
+        capSimtixNumElements(TEST_SIZE, anyAllInputPatternCount + 1);
     int error, i;
     size_t threads[1], localThreads[1];
     char kernelSource[10240];
@@ -180,7 +183,7 @@ int test_any_all_kernel(cl_context context, cl_command_queue queue,
     const unsigned int vectorStride = g_vector_aligns[vecSize];
     const size_t directedElementCount = anyAllInputPatternCount * vectorStride;
     const size_t randomElementCount =
-        TEST_SIZE * vectorStride - directedElementCount;
+        testSize * vectorStride - directedElementCount;
     const size_t elementSize = get_explicit_type_size(vecType);
     // Start with directed patterns to guarantee coverage of key MSB
     // combinations that random data is unlikely to produce.
@@ -192,7 +195,7 @@ int test_any_all_kernel(cl_context context, cl_command_queue queue,
 
     streams[0] = clCreateBuffer(context, CL_MEM_COPY_HOST_PTR,
                                 get_explicit_type_size(vecType)
-                                    * g_vector_aligns[vecSize] * TEST_SIZE,
+                                    * g_vector_aligns[vecSize] * testSize,
                                 &inDataA, &error);
     if( streams[0] == NULL )
     {
@@ -201,7 +204,7 @@ int test_any_all_kernel(cl_context context, cl_command_queue queue,
     }
     streams[1] =
         clCreateBuffer(context, CL_MEM_COPY_HOST_PTR,
-                       sizeof(cl_int) * g_vector_aligns[vecSize] * TEST_SIZE,
+                       sizeof(cl_int) * g_vector_aligns[vecSize] * testSize,
                        clearData, &error);
     if( streams[1] == NULL )
     {
@@ -216,7 +219,7 @@ int test_any_all_kernel(cl_context context, cl_command_queue queue,
     test_error( error, "Unable to set indexed kernel arguments" );
 
     /* Run the kernel */
-    threads[0] = TEST_SIZE;
+    threads[0] = testSize;
 
     error = get_max_common_work_group_size( context, kernel, threads[0], &localThreads[0] );
     test_error( error, "Unable to get work group size to use" );
@@ -225,11 +228,12 @@ int test_any_all_kernel(cl_context context, cl_command_queue queue,
     test_error( error, "Unable to execute test kernel" );
 
     /* Now get the results */
-    error = clEnqueueReadBuffer( queue, streams[1], true, 0, sizeof( int ) * TEST_SIZE, outData, 0, NULL, NULL );
+    error = clEnqueueReadBuffer(queue, streams[1], true, 0,
+                                sizeof(int) * testSize, outData, 0, NULL, NULL);
     test_error( error, "Unable to read output array!" );
 
     /* And verify! */
-    for( i = 0; i < TEST_SIZE; i++ )
+    for (i = 0; i < testSize; i++)
     {
         int expected = verifyFn( vecType, vecSize, (char *)inDataA + i * get_explicit_type_size( vecType ) * g_vector_aligns[vecSize] );
         if( expected != outData[ i ] )
@@ -419,6 +423,7 @@ int test_select_kernel(cl_context context, cl_command_queue queue, const char *f
     clMemWrapper streams[4];
     cl_long inDataA[TEST_SIZE * 16], inDataB[ TEST_SIZE * 16 ], inDataC[ TEST_SIZE * 16 ];
     cl_long outData[TEST_SIZE * 16], expected[16];
+    const int testSize = capSimtixNumElements(TEST_SIZE);
     int error, i;
     size_t threads[1], localThreads[1];
     char kernelSource[10240];
@@ -480,13 +485,16 @@ int test_select_kernel(cl_context context, cl_command_queue queue, const char *f
     }
 
     /* Generate some streams */
-    generate_random_data( vecType, TEST_SIZE * g_vector_aligns[vecSize], d, inDataA );
-    generate_random_data( vecType, TEST_SIZE * g_vector_aligns[vecSize], d, inDataB );
-    generate_random_data( testVecType, TEST_SIZE * g_vector_aligns[vecSize], d, inDataC );
+    generate_random_data(vecType, testSize * g_vector_aligns[vecSize], d,
+                         inDataA);
+    generate_random_data(vecType, testSize * g_vector_aligns[vecSize], d,
+                         inDataB);
+    generate_random_data(testVecType, testSize * g_vector_aligns[vecSize], d,
+                         inDataC);
 
     streams[0] = clCreateBuffer(context, CL_MEM_COPY_HOST_PTR,
                                 get_explicit_type_size(vecType)
-                                    * g_vector_aligns[vecSize] * TEST_SIZE,
+                                    * g_vector_aligns[vecSize] * testSize,
                                 &inDataA, &error);
     if( streams[0] == NULL )
     {
@@ -495,7 +503,7 @@ int test_select_kernel(cl_context context, cl_command_queue queue, const char *f
     }
     streams[1] = clCreateBuffer(context, CL_MEM_COPY_HOST_PTR,
                                 get_explicit_type_size(vecType)
-                                    * g_vector_aligns[vecSize] * TEST_SIZE,
+                                    * g_vector_aligns[vecSize] * testSize,
                                 &inDataB, &error);
     if( streams[1] == NULL )
     {
@@ -504,14 +512,17 @@ int test_select_kernel(cl_context context, cl_command_queue queue, const char *f
     }
     streams[2] = clCreateBuffer(context, CL_MEM_COPY_HOST_PTR,
                                 get_explicit_type_size(testVecType)
-                                    * g_vector_aligns[vecSize] * TEST_SIZE,
+                                    * g_vector_aligns[vecSize] * testSize,
                                 &inDataC, &error);
     if( streams[2] == NULL )
     {
         print_error( error, "Creating input array A failed!\n");
         return -1;
     }
-    streams[3] = clCreateBuffer( context, CL_MEM_READ_WRITE, get_explicit_type_size( vecType ) * g_vector_aligns[outVecSize] * TEST_SIZE, NULL, &error);
+    streams[3] = clCreateBuffer(context, CL_MEM_READ_WRITE,
+                                get_explicit_type_size(vecType)
+                                    * g_vector_aligns[outVecSize] * testSize,
+                                NULL, &error);
     if( streams[3] == NULL )
     {
         print_error( error, "Creating output array failed!\n");
@@ -529,7 +540,7 @@ int test_select_kernel(cl_context context, cl_command_queue queue, const char *f
     test_error( error, "Unable to set indexed kernel arguments" );
 
     /* Run the kernel */
-    threads[0] = TEST_SIZE;
+    threads[0] = testSize;
 
     error = get_max_common_work_group_size( context, kernel, threads[0], &localThreads[0] );
     test_error( error, "Unable to get work group size to use" );
@@ -538,11 +549,14 @@ int test_select_kernel(cl_context context, cl_command_queue queue, const char *f
     test_error( error, "Unable to execute test kernel" );
 
     /* Now get the results */
-    error = clEnqueueReadBuffer( queue, streams[3], true, 0, get_explicit_type_size( vecType ) * TEST_SIZE * g_vector_aligns[outVecSize], outData, 0, NULL, NULL );
+    error = clEnqueueReadBuffer(queue, streams[3], true, 0,
+                                get_explicit_type_size(vecType) * testSize
+                                    * g_vector_aligns[outVecSize],
+                                outData, 0, NULL, NULL);
     test_error( error, "Unable to read output array!" );
 
     /* And verify! */
-    for( i = 0; i < (int)(TEST_SIZE * g_vector_aligns[vecSize]); i++ )
+    for (i = 0; i < (int)(testSize * g_vector_aligns[vecSize]); i++)
     {
         if(i%g_vector_aligns[vecSize] >= (int) vecSize) {
             continue;

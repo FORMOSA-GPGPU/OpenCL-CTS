@@ -188,7 +188,7 @@ int test_read_image_set_3D(cl_device_id device, cl_context context,
             }
         }
     }
-    else if (ctx.testMaxImages)
+    else if (ctx.testMaxImages || gSimtixMode)
     {
         // Try a specific set of maximum sizes
         size_t numbeOfSizes;

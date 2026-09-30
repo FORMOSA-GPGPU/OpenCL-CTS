@@ -13,10 +13,9 @@
 // limitations under the License.
 
 #include "parseParameters.h"
+#include "imageHelpers.h"
 
 #include <vector>
-
-int gInvalidObject = 0;
 
 static void resetSimtixOptions()
 {
@@ -89,6 +88,46 @@ int main()
         if (capSimtixNumElements(0x4000) != 0x4000
             || capSimtixDimension(2, 100) != 100 || capSimtixExponent(26) != 26)
             return 1;
+    }
+
+    {
+        gSimtixMode = true;
+        gSimtixSamples = 1;
+        if (capSimtixNumElements(512, 11) != 11
+            || capSimtixNumElements(512, 49) != 49
+            || capSimtixNumElements(64) != 1)
+            return 1;
+        gSimtixSamples = 64;
+        if (capSimtixNumElements(512, 49) != 64) return 1;
+        gSimtixSamples = 1024;
+        if (capSimtixNumElements(512, 49) != 512) return 1;
+        resetSimtixOptions();
+    }
+
+    {
+        gSimtixMode = true;
+        const cl_image_format format{ CL_RGBA, CL_FLOAT };
+        const cl_mem_object_type types[] = {
+            CL_MEM_OBJECT_IMAGE1D, CL_MEM_OBJECT_IMAGE1D_BUFFER,
+            CL_MEM_OBJECT_IMAGE2D, CL_MEM_OBJECT_IMAGE1D_ARRAY,
+            CL_MEM_OBJECT_IMAGE3D, CL_MEM_OBJECT_IMAGE2D_ARRAY
+        };
+        for (size_t samples : { size_t(1), size_t(17), size_t(64) })
+        {
+            gSimtixSamples = samples;
+            for (auto type : types)
+            {
+                size_t count = 0, sizes[2][3];
+                get_max_sizes(&count, 2, sizes, 4096, 4096, 4096, 4096, 1 << 24,
+                              1 << 26, type, &format, CL_TRUE);
+                if (count != 2) return 1;
+                for (size_t i = 0; i < count; ++i)
+                    if (!sizes[i][0] || !sizes[i][1] || !sizes[i][2]
+                        || sizes[i][0] * sizes[i][1] * sizes[i][2] > 64)
+                        return 1;
+            }
+        }
+        resetSimtixOptions();
     }
 
     return 0;

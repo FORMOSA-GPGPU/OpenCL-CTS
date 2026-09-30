@@ -14,6 +14,7 @@
 // limitations under the License.
 //
 #include "testBase.h"
+#include "harness/parseParameters.h"
 #include "harness/testHarness.h"
 
 const char *context_test_kernels[] = {
@@ -57,7 +58,7 @@ typedef cl_uint (*sampleActionFn)(cl_uint source);
 sampleActionFn    sampleActions[4] = { sampleAction1, sampleAction2, sampleAction3, sampleAction4 };
 
 #define BUFFER_COUNT 2
-#define TEST_SIZE    512
+#define TEST_SIZE capSimtixNumElements(512)
 
 typedef struct TestItem
 {
@@ -243,8 +244,7 @@ cl_int UseTestItem( const TestItem *item, cl_int *err )
         return error;
     }
 
-    for( j = 0; j < TEST_SIZE; j++ )
-        mapped[j] = genrand_int32(item->d);
+    for (j = 0; j < size_t(TEST_SIZE); j++) mapped[j] = genrand_int32(item->d);
 
     error = clEnqueueUnmapMemObject( item->q, item->m[0], mapped, 0, NULL, NULL );
     if( CL_SUCCESS != error )
@@ -274,8 +274,7 @@ cl_int UseTestItem( const TestItem *item, cl_int *err )
             return error;
         }
 
-        for( i = 0; i < TEST_SIZE; i++ )
-            mapped[i] = 0xdeaddead;
+        for (i = 0; i < size_t(TEST_SIZE); i++) mapped[i] = 0xdeaddead;
 
         error = clEnqueueUnmapMemObject( item->q, item->m[1], mapped, 0, NULL, NULL );
         if( CL_SUCCESS != error )
@@ -358,7 +357,7 @@ cl_int UseTestItem( const TestItem *item, cl_int *err )
 
 
         //Verify the results
-        for( i = 0; i < TEST_SIZE; i++ )
+        for (i = 0; i < size_t(TEST_SIZE); i++)
         {
             cl_uint expected = sampleActions[j](inputData[i]);
             cl_uint result = mapped[i];
@@ -420,6 +419,13 @@ static int test_context_multiple_contexts_same_device(cl_device_id deviceID,
 {
     size_t i, j;
     cl_int err = CL_SUCCESS;
+    const size_t repetitions = gSimtixMode ? 2 : 5;
+
+    if (gSimtixMode)
+        maxCount = std::min(
+            maxCount,
+            std::max(minCount,
+                     size_t(std::max(2, capSimtixNumElements(200) / 16))));
 
     //Figure out how many of these we can make before the first failure
     TestItem *list = NULL;
@@ -464,9 +470,9 @@ static int test_context_multiple_contexts_same_device(cl_device_id deviceID,
     maxCount = i;
 
     // Make sure we can do it again a few times
-    log_info( "Tring to do it 5 more times" );
+    log_info("Trying to do it %zu more times", repetitions);
     fflush( stdout);
-    for( j = 0; j < 5; j++ )
+    for (j = 0; j < repetitions; j++)
     {
         //free all the contexts we already made
         while( list )

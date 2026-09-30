@@ -67,7 +67,7 @@ int test_copy(cl_device_id deviceID, cl_context context,
 #define TEST_COPY(NAME, type, value)                                           \
     REGISTER_TEST(op_copy_##NAME##_simple)                                     \
     {                                                                          \
-        std::vector<type> results(1024, (type)value);                          \
+        std::vector<type> results(capSimtixNumElements(1024), (type)value);    \
         return test_copy(device, context, queue, "copy_" #NAME "_simple",      \
                          results);                                             \
     }
@@ -141,6 +141,6 @@ REGISTER_TEST(op_copy_struct_struct_simple)
 REGISTER_TEST(op_copy_half_simple)
 {
     PASSIVE_REQUIRE_FP16_SUPPORT(device);
-    std::vector<cl_float> results(1024, 3.25);
+    std::vector<cl_float> results(capSimtixNumElements(1024), 3.25);
     return test_copy(device, context, queue, "copy_half_simple", results);
 }

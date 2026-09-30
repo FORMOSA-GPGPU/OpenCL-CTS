@@ -31,7 +31,9 @@ const char *write_kernels[] = {
     "}\n"
 };
 
-#define TEST_SIZE 10000
+#include "harness/parseParameters.h"
+
+#define TEST_SIZE size_t(capSimtixNumElements(10000))
 #define TEST_COUNT 10
 #define RANDOMIZE 1
 #define DEBUG_OUT 0

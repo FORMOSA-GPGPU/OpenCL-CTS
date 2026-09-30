@@ -3,6 +3,23 @@
 This is the OpenCL CTS for all versions of the Khronos
 [OpenCL](https://www.khronos.org/opencl/) standard.
 
+## simtix mode (FORMOSA fork)
+
+Use `--simtix --simtix-samples 64` for reduced simulator workloads. Without
+`--simtix`, the original workloads are unchanged. These runs are development
+samples, not conformance results.
+
+The sample budget also bounds local workloads in allocations, geometrics,
+sub-buffers, multiple contexts/queues, SPIR-V, images, C11 atomics, events and
+contractions and relationals. Relationals retain directed MSB/NaN patterns even
+when the requested sample count is smaller than those patterns. It is not a
+suite-wide limit on kernel launches. Test variants,
+formats and verification remain enabled; structural minimums can exceed the
+requested budget (for example, aligned sub-buffers and mipmap dimensions).
+Allocation and context repetitions are limited to two. Image size stress
+uses small dimensions instead of the device maximum; this does not validate
+maximum-size allocations.
+
 ## Building the CTS
 
 The CTS supports Linux, Windows, macOS, and Android platforms. In particular,

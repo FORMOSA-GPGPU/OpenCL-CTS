@@ -170,7 +170,7 @@ int test_vector_times_scalar(cl_device_id deviceID,
         }                                                                      \
         typedef cl_##TYPE##N Tv;                                               \
         typedef cl_##TYPE Ts;                                                  \
-        const int num = 1 << 20;                                               \
+        const int num = capSimtixNumElements(1 << 20, 16);                     \
         std::vector<Tv> lhs(num);                                              \
         std::vector<Ts> rhs(num);                                              \
                                                                                \

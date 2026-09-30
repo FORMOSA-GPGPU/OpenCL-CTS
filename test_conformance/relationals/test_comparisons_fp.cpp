@@ -23,6 +23,7 @@
 #include <vector>
 
 #include "harness/mathHelpers.h"
+#include "harness/parseParameters.h"
 #include "harness/stringHelpers.h"
 
 #include <CL/cl_half.h>
@@ -114,7 +115,8 @@ void RelationalsFPTest::generate_equiv_test_data(T* outData,
 {
     unsigned int i;
 
-    generate_random_data(param.dataType, vecSize * TEST_SIZE, d, outData);
+    const int testSize = capSimtixNumElements(TEST_SIZE, 3 * vecSize + 1);
+    generate_random_data(param.dataType, vecSize * testSize, d, outData);
 
     // Fill the first few vectors with NAN in each vector element (or the second
     // set if we're alpha, so we can test either case)
@@ -170,6 +172,7 @@ int RelationalsFPTest::test_equiv_kernel(unsigned int vecSize,
                                   std::int32_t, std::int64_t>::type>::type U;
 
     U outData[TEST_SIZE * 16], expected[16];
+    const int testSize = capSimtixNumElements(TEST_SIZE, 3 * vecSize + 1);
     int error, i, j;
     size_t threads[1], localThreads[1];
     std::string kernelSource;
@@ -248,7 +251,7 @@ int RelationalsFPTest::test_equiv_kernel(unsigned int vecSize,
 
     streams[0] =
         clCreateBuffer(context, CL_MEM_COPY_HOST_PTR,
-                       sizeof(T) * vecSize * TEST_SIZE, &inDataA, &error);
+                       sizeof(T) * vecSize * testSize, &inDataA, &error);
     if (streams[0] == NULL)
     {
         print_error(error, "Creating input array A failed!\n");
@@ -256,21 +259,21 @@ int RelationalsFPTest::test_equiv_kernel(unsigned int vecSize,
     }
     streams[1] =
         clCreateBuffer(context, CL_MEM_COPY_HOST_PTR,
-                       sizeof(T) * vecSize * TEST_SIZE, &inDataB, &error);
+                       sizeof(T) * vecSize * testSize, &inDataB, &error);
     if (streams[1] == NULL)
     {
         print_error(error, "Creating input array A failed!\n");
         return -1;
     }
     streams[2] = clCreateBuffer(context, CL_MEM_READ_WRITE,
-                                sizeof(U) * vecSize * TEST_SIZE, NULL, &error);
+                                sizeof(U) * vecSize * testSize, NULL, &error);
     if (streams[2] == NULL)
     {
         print_error(error, "Creating output array failed!\n");
         return -1;
     }
     streams[3] = clCreateBuffer(context, CL_MEM_READ_WRITE,
-                                sizeof(U) * vecSize * TEST_SIZE, NULL, &error);
+                                sizeof(U) * vecSize * testSize, NULL, &error);
     if (streams[3] == NULL)
     {
         print_error(error, "Creating output array failed!\n");
@@ -288,7 +291,7 @@ int RelationalsFPTest::test_equiv_kernel(unsigned int vecSize,
     test_error(error, "Unable to set indexed kernel arguments");
 
     /* Run the kernel */
-    threads[0] = TEST_SIZE;
+    threads[0] = testSize;
 
     error = get_max_common_work_group_size(context, kernel, threads[0],
                                            &localThreads[0]);
@@ -300,7 +303,7 @@ int RelationalsFPTest::test_equiv_kernel(unsigned int vecSize,
 
     /* Now get the results */
     error = clEnqueueReadBuffer(queue, streams[2], true, 0,
-                                sizeof(U) * TEST_SIZE * vecSize, outData, 0,
+                                sizeof(U) * testSize * vecSize, outData, 0,
                                 NULL, NULL);
     test_error(error, "Unable to read output array!");
 
@@ -314,7 +317,7 @@ int RelationalsFPTest::test_equiv_kernel(unsigned int vecSize,
     };
 
     /* And verify! */
-    for (i = 0; i < TEST_SIZE; i++)
+    for (i = 0; i < testSize; i++)
     {
         verify_equiv_values<T, U>(vecSize, &inDataA[i * vecSize],
                                   &inDataB[i * vecSize], expected,
@@ -349,13 +352,13 @@ int RelationalsFPTest::test_equiv_kernel(unsigned int vecSize,
 
     /* Now get the results */
     error = clEnqueueReadBuffer(queue, streams[3], true, 0,
-                                sizeof(U) * TEST_SIZE * vecSize, outData, 0,
+                                sizeof(U) * testSize * vecSize, outData, 0,
                                 NULL, NULL);
     test_error(error, "Unable to read output array!");
 
     /* And verify! */
     int fail = 0;
-    for (i = 0; i < TEST_SIZE; i++)
+    for (i = 0; i < testSize; i++)
     {
         verify_equiv_values<T, U>(vecSize, &inDataA[i * vecSize],
                                   &inDataB[i * vecSize], expected,

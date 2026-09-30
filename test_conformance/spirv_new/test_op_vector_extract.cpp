@@ -99,7 +99,7 @@ int test_extract(cl_device_id deviceID, cl_context context,
         }                                                                      \
         typedef cl_##TYPE##N Tv;                                               \
         typedef cl_##TYPE Ts;                                                  \
-        const int num = 1 << 20;                                               \
+        const int num = capSimtixNumElements(1 << 20, 16);                     \
         std::vector<Tv> in(num);                                               \
         const char *name = "vector_" #TYPE #N "_extract";                      \
                                                                                \

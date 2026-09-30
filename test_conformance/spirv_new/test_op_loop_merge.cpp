@@ -84,11 +84,11 @@ int test_selection_merge(cl_device_id deviceID,
 #define TEST_LOOP_BRANCH(control)                                              \
     REGISTER_TEST(op_loop_merge_branch_##control)                              \
     {                                                                          \
-        const int num = 1 << 10;                                               \
+        const int num = capSimtixNumElements(1 << 10, 16);                     \
         RandomSeed seed(gRandomSeed);                                          \
                                                                                \
         int rep = 4;                                                           \
-        std::vector<cl_int> in(rep *num);                                      \
+        std::vector<cl_int> in(rep * num);                                     \
         std::vector<cl_int> out(num);                                          \
                                                                                \
         for (int i = 0; i < num; i++)                                          \

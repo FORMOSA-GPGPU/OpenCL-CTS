@@ -67,7 +67,7 @@ int test_constant(cl_device_id deviceID, cl_context context,
 #define TEST_CONSTANT(NAME, type, value)                                       \
     REGISTER_TEST(op_constant_##NAME##_simple)                                 \
     {                                                                          \
-        std::vector<type> results(1024, (type)value);                          \
+        std::vector<type> results(capSimtixNumElements(1024), (type)value);    \
         return test_constant(device, context, queue,                           \
                              "constant_" #NAME "_simple", results);            \
     }
@@ -146,7 +146,7 @@ REGISTER_TEST(op_constant_struct_struct_simple)
 REGISTER_TEST(op_constant_half_simple)
 {
     PASSIVE_REQUIRE_FP16_SUPPORT(device);
-    std::vector<cl_float> results(1024, 3.25);
+    std::vector<cl_float> results(capSimtixNumElements(1024), 3.25);
     return test_constant(device, context, queue, "constant_half_simple",
                          results);
 }

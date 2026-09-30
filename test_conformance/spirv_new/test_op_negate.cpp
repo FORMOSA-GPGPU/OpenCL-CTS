@@ -88,7 +88,7 @@ int test_negation(cl_device_id deviceID,
 #define TEST_NEGATION(TYPE, Tv, OP, FUNC)                                      \
     REGISTER_TEST(OP##_##TYPE)                                                 \
     {                                                                          \
-        int num = 1 << 20;                                                     \
+        int num = capSimtixNumElements(1 << 20, 16);                           \
         std::vector<Tv> in(num);                                               \
         RandomSeed seed(gRandomSeed);                                          \
         for (int i = 0; i < num; i++)                                          \

@@ -14,6 +14,7 @@
 // limitations under the License.
 //
 #include "testBase.h"
+#include "harness/parseParameters.h"
 #include "harness/typeWrappers.h"
 #include "harness/conversions.h"
 #include "harness/errorHelpers.h"
@@ -90,7 +91,7 @@ const char *oneToOneKernelPattern_doubleV3 =
 "\n"
 "}\n";
 
-#define TEST_SIZE (1 << 20)
+#define TEST_SIZE capSimtixNumElements(1 << 20)
 
 double verifyLength_double( double *srcA, size_t vecSize );
 double verifyDistance_double( double *srcA, double *srcB, size_t vecSize );
@@ -117,6 +118,16 @@ void fillWithTrickyNumbers_double( double *aVectors, double *bVectors, size_t ve
         MAKE_HEX_DOUBLE(0x1.0p-511, 0x1L, -511), MAKE_HEX_DOUBLE(0x1.8p-511, 0x18L, -515), MAKE_HEX_DOUBLE(0x1.0p-512, 0x1L, -512), MAKE_HEX_DOUBLE(-0x1.0p-511, -0x1L, -511), MAKE_HEX_DOUBLE(-0x1.8p-511, -0x18L, -515), MAKE_HEX_DOUBLE(-0x1.0p-512, -0x1L, -512),
         DBL_MAX / 2., -DBL_MAX / 2., INFINITY,  -INFINITY, 0., -0. };
     static const size_t trickyCount = sizeof( trickyValues ) / sizeof( trickyValues[0] );
+    if (gSimtixMode)
+    {
+        for (size_t i = 0; i < size_t(TEST_SIZE) * vecSize; ++i)
+        {
+            aVectors[i] = trickyValues[i % trickyCount];
+            if (bVectors)
+                bVectors[i] = trickyValues[(i + vecSize) % trickyCount];
+        }
+        return;
+    }
     static const size_t stride[4] = {1, trickyCount, trickyCount*trickyCount, trickyCount*trickyCount*trickyCount };
     size_t i, j, k;
 
@@ -375,7 +386,7 @@ int test_twoToFloat_kernel_double(cl_command_queue queue, cl_context context, co
     test_error( error, "Unable to read output array!" );
 
     /* And verify! */
-    for( i = 0; i < TEST_SIZE; i++ )
+    for (i = 0; i < size_t(TEST_SIZE); i++)
     {
         double expected = verifyFn( inDataA + i * vecSize, inDataB + i * vecSize, vecSize );
         if( (double) expected != outData[ i ] )
@@ -602,7 +613,7 @@ int test_oneToFloat_kernel_double(cl_command_queue queue, cl_context context, co
     test_error( error, "Unable to read output array!" );
 
     /* And verify! */
-    for( i = 0; i < TEST_SIZE; i++ )
+    for (i = 0; i < size_t(TEST_SIZE); i++)
     {
         double expected = verifyFn( inDataA + i * vecSize, vecSize );
         if( (double) expected != outData[ i ] )
@@ -810,7 +821,7 @@ int test_oneToOne_kernel_double(cl_command_queue queue, cl_context context, cons
     test_error( error, "Unable to read output array!" );
 
     /* And verify! */
-    for( i = 0; i < TEST_SIZE; i++ )
+    for (i = 0; i < size_t(TEST_SIZE); i++)
     {
         double expected[4];
         verifyFn( inDataA + i * vecSize, expected, vecSize );
@@ -952,8 +963,3 @@ int test_geom_normalize_double(cl_device_id deviceID, cl_context context, cl_com
     }
     return retVal;
 }
-
-
-
-
-

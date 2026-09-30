@@ -14,6 +14,7 @@
 // limitations under the License.
 //
 #include "harness/compat.h"
+#include "harness/parseParameters.h"
 
 #include <string.h>
 #include <stdio.h>
@@ -90,7 +91,9 @@ int                     *skipTest[8];
 double              *buf3_double, *buf4_double, *buf5_double, *buf6_double;
 double              *correct_double[8];
 
-#define BUFFER_SIZE         (1024*1024)
+#define BUFFER_SIZE                                                            \
+    (capSimtixNumElements(1024 * 1024 / sizeof(cl_double), 16)                 \
+     * sizeof(cl_double))
 
 
 static test_status ParseArgs(int &argc, const char *argv[],

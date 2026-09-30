@@ -19,6 +19,8 @@
 #include "allocation_fill.h"
 #include "allocation_execute.h"
 #include "harness/testHarness.h"
+#include "harness/parseParameters.h"
+#include <climits>
 #include <time.h>
 
 typedef long long unsigned llu;
@@ -184,13 +186,19 @@ int doTest(cl_device_id device, cl_context context, cl_command_queue queue,
                               * (double)g_reduction_percentage / 100.0);
     }
 
-    // Round to nearest MB.
-    g_max_size &= (size_t)(0xFFFFFFFFFF00000ULL);
+    if (gSimtixMode)
+        g_max_size = std::min(g_max_size,
+                              size_t(capSimtixNumElements(INT_MAX, 2))
+                                  * sizeof(cl_uint4));
+    else
+        g_max_size &= (size_t)(0xFFFFFFFFFF00000ULL);
 
     // Scales the number of work-items to keep the amount of bytes processed
     // per work-item the same.
     number_of_work_items =
         std::max(g_max_size / BYTES_PER_WORK_ITEM, 8192ULL * 2ULL);
+    if (gSimtixMode)
+        number_of_work_items = capSimtixNumElements(number_of_work_items);
 
     log_info("** Target allocation size (rounded to nearest MB) is: %llu bytes "
              "(%gMB).\n",
@@ -198,7 +206,9 @@ int doTest(cl_device_id device, cl_context context, cl_command_queue queue,
     log_info("** Allocating %s to size %gMB.\n", alloc_description[alloc_type],
              toMB(g_max_size));
 
-    for (int count = 0; count < g_repetition_count; count++)
+    const int repetitions =
+        gSimtixMode ? std::min(g_repetition_count, 2) : g_repetition_count;
+    for (int count = 0; count < repetitions; count++)
     {
         current_test_size = g_max_size;
         error = FAILED_TOO_BIG;

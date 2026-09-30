@@ -157,7 +157,7 @@ int test_fmath(cl_device_id deviceID,
         {                                                                      \
             PASSIVE_REQUIRE_FP16_SUPPORT(device);                              \
         }                                                                      \
-        const int num = 1 << 20;                                               \
+        const int num = capSimtixNumElements(1 << 20, 16);                     \
         std::vector<cl_##TYPE> lhs(num);                                       \
         std::vector<cl_##TYPE> rhs(num);                                       \
                                                                                \

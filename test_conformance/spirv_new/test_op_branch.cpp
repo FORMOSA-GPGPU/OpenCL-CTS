@@ -69,7 +69,7 @@ int test_branch_simple(cl_device_id deviceID, cl_context context,
     REGISTER_TEST(op_##NAME##_simple)                                          \
     {                                                                          \
         RandomSeed seed(gRandomSeed);                                          \
-        int num = 1 << 10;                                                     \
+        int num = capSimtixNumElements(1 << 10, 16);                           \
         std::vector<cl_int> results(num);                                      \
         for (int i = 0; i < num; i++)                                          \
         {                                                                      \

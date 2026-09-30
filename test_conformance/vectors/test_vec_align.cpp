@@ -21,6 +21,7 @@
 #include "harness/typeWrappers.h"
 #include "harness/testHarness.h"
 #include "harness/ThreadPool.h"
+#include "harness/parseParameters.h"
 
 #include "structs.h"
 
@@ -99,8 +100,9 @@ int test_vec_internal(cl_device_id deviceID, cl_context context,
     size_t preSizeBytes, postSizeBytes, typeSize, totSize;
 
     clState* pClState = newClState(deviceID, context, queue);
-    bufferStruct* pBuffers = newBufferStruct(
-        bufSize, ALIGNMENT_WORK_ITEMS * sizeof(cl_uint), pClState);
+    const size_t workItems = capSimtixNumElements(ALIGNMENT_WORK_ITEMS);
+    bufferStruct* pBuffers =
+        newBufferStruct(bufSize, workItems * sizeof(cl_uint), pClState);
 
     if (pBuffers == NULL)
     {
@@ -209,7 +211,7 @@ int test_vec_internal(cl_device_id deviceID, cl_context context,
 
             // log_info("About to Run kernel\n"); fflush(stdout);
             // now we run the kernel
-            err = runKernel(pClState, ALIGNMENT_WORK_ITEMS);
+            err = runKernel(pClState, workItems);
             if (err != 0)
             {
                 vlog_error("%s: runKernel fail (%zu threads) %s%s\n", testName,
