@@ -16,6 +16,10 @@ when the requested sample count is smaller than those patterns. It is not a
 suite-wide limit on kernel launches. Test variants,
 formats and verification remain enabled; structural minimums can exceed the
 requested budget (for example, aligned sub-buffers and mipmap dimensions).
+Half load/round-trip tests retain at least 16 inputs for the vector variants;
+aligned half loads round the input count down to a multiple of four. Their
+sampled bit patterns span the 16-bit range. Array read/write tests cap both
+buffer elements and transfer repetitions, retaining at least two elements.
 Allocation and context repetitions are limited to two. Image size stress
 uses small dimensions instead of the device maximum; this does not validate
 maximum-size allocations.

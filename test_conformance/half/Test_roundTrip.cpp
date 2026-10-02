@@ -21,6 +21,7 @@
 #include "cl_utils.h"
 #include "tests.h"
 #include "harness/testHarness.h"
+#include "harness/parseParameters.h"
 
 REGISTER_TEST(roundTrip)
 {
@@ -163,10 +164,11 @@ REGISTER_TEST(roundTrip)
     size_t elementSize = std::max(sizeof(cl_half), sizeof(cl_float));
     size_t blockCount = (size_t)getBufferSize(device) / elementSize; //elementSize is a power of two
     uint64_t lastCase = 1ULL << (8*sizeof(cl_half)); // number of cl_half
+    lastCase = capSimtixNumElements(lastCase, kLargestVectorSize);
     size_t stride = blockCount;
 
     error = 0;
-    uint64_t printMask = (lastCase >> 4) - 1;
+    uint64_t printMask = lastCase > 16 ? (lastCase >> 4) - 1 : 0;
     uint32_t count;
     size_t loopCount;
 
@@ -177,7 +179,9 @@ REGISTER_TEST(roundTrip)
         //Init the input stream
         uint16_t *p = (uint16_t *)gIn_half;
         for( j = 0; j < count; j++ )
-            p[j] = j + i;
+            p[j] = gSimtixMode && lastCase > 1
+                ? (j + i) * UINT16_MAX / (lastCase - 1)
+                : j + i;
 
         if( (error = clEnqueueWriteBuffer(gQueue, gInBuffer_half, CL_TRUE, 0, count * sizeof( cl_half ), gIn_half, 0, NULL, NULL)) )
         {

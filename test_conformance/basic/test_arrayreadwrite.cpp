@@ -14,6 +14,7 @@
 // limitations under the License.
 //
 #include "harness/compat.h"
+#include "harness/parseParameters.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -29,8 +30,8 @@ static int test_arrayreadwrite_impl(cl_device_id device, cl_context context,
                                     cl_mem_flags flags)
 {
     clMemWrapper buffer;
-    int                 num_tries = 400;
-    num_elements = 1024 * 1024 * 4;
+    int num_tries = capSimtixNumElements(400);
+    num_elements = capSimtixNumElements(1024 * 1024 * 4, 2);
     MTdataHolder d(gRandomSeed);
 
     std::vector<cl_uint> reference_vals(num_elements);
@@ -60,11 +61,16 @@ static int test_arrayreadwrite_impl(cl_device_id device, cl_context context,
         int        offset;
         int        cb;
 
-        do {
-            offset = (int)(genrand_int32(d) & 0x7FFFFFFF);
-            if (offset > 0 && offset < num_elements)
-                break;
-        } while (1);
+        if (gSimtixMode)
+            offset = random_in_range(1, num_elements - 1, d);
+        else
+        {
+            do
+            {
+                offset = (int)(genrand_int32(d) & 0x7FFFFFFF);
+                if (offset > 0 && offset < num_elements) break;
+            } while (1);
+        }
         cb = (int)(genrand_int32(d) & 0x7FFFFFFF);
         if (cb > (num_elements - offset))
             cb = num_elements - offset;

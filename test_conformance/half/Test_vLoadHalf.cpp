@@ -15,6 +15,7 @@
 //
 #include "harness/compat.h"
 #include "harness/testHarness.h"
+#include "harness/parseParameters.h"
 
 #include <string.h>
 
@@ -441,10 +442,11 @@ int Test_vLoadHalf_private( cl_device_id device, bool aligned )
     // we handle 64-bit types a bit differently.
     if( lastCase == 0 )
         lastCase = 0x100000000ULL;
-
+    lastCase = capSimtixNumElements(lastCase, kLargestVectorSize);
+    if (gSimtixMode && aligned) lastCase -= lastCase % 4;
 
     uint64_t i, j;
-    uint64_t printMask = (lastCase >> 4) - 1;
+    uint64_t printMask = lastCase > 16 ? (lastCase >> 4) - 1 : 0;
     uint32_t count = 0;
     error = 0;
     int addressSpace;
@@ -457,7 +459,9 @@ int Test_vLoadHalf_private( cl_device_id device, bool aligned )
         //Init the input stream
         uint16_t *p = (uint16_t *)gIn_half;
         for( j = 0; j < count; j++ )
-            p[j] = j + i;
+            p[j] = gSimtixMode && lastCase > 1
+                ? (j + i) * UINT16_MAX / (lastCase - 1)
+                : j + i;
 
         if( (error = clEnqueueWriteBuffer(gQueue, gInBuffer_half, CL_TRUE, 0, count * sizeof( cl_half ), gIn_half, 0, NULL, NULL)))
         {
