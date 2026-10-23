@@ -15,6 +15,7 @@
 //
 #include "harness/compat.h"
 #include "harness/imageHelpers.h"
+#include "harness/parseParameters.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -215,9 +216,13 @@ static int test_readimage(cl_device_id device, cl_context context,
 
     std::string kernel_name("test_");
 
-    size_t img_width = TEST_IMAGE_WIDTH(IMG_TYPE);
-    size_t img_height = TEST_IMAGE_HEIGHT(IMG_TYPE);
-    size_t img_depth = TEST_IMAGE_DEPTH(IMG_TYPE);
+    const unsigned dimensions = IMG_TYPE == CL_MEM_OBJECT_IMAGE2D ? 2 : 3;
+    size_t img_width =
+        capSimtixDimension(dimensions, TEST_IMAGE_WIDTH(IMG_TYPE));
+    size_t img_height =
+        capSimtixDimension(dimensions, TEST_IMAGE_HEIGHT(IMG_TYPE));
+    size_t img_depth =
+        capSimtixDimension(dimensions, TEST_IMAGE_DEPTH(IMG_TYPE));
 
     int err;
 

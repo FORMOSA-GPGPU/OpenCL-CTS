@@ -14,6 +14,7 @@
 // limitations under the License.
 //
 #include "harness/compat.h"
+#include "harness/parseParameters.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -21,6 +22,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <memory>
+#include <algorithm>
 
 #include "testBase.h"
 
@@ -111,8 +113,8 @@ static int test_imagecopy_impl(cl_device_id device, cl_context context,
     std::unique_ptr<unsigned short[]> rgba16_inptr, rgba16_outptr;
     std::unique_ptr<float[]> rgbafp_inptr, rgbafp_outptr;
     clMemWrapper streams[6];
-    size_t img_width = 512;
-    size_t img_height = 512;
+    size_t img_width = capSimtixDimension(2, 512);
+    size_t img_height = capSimtixDimension(2, 512);
     int i, err;
     MTdataHolder d(gRandomSeed);
 
@@ -153,7 +155,8 @@ static int test_imagecopy_impl(cl_device_id device, cl_context context,
     for (i = 0; i < 3; i++)
     {
         void *p, *outp;
-        size_t x, y, delta_w = img_width / 8, delta_h = img_height / 16;
+        size_t x, y, delta_w = std::max<size_t>(1, img_width / 8),
+                     delta_h = std::max<size_t>(1, img_height / 16);
 
         switch (i)
         {
@@ -191,7 +194,9 @@ static int test_imagecopy_impl(cl_device_id device, cl_context context,
             {
                 copy_number++;
                 size_t copy_origin[3] = { x, y, 0 },
-                       copy_region[3] = { delta_w, delta_h, 1 };
+                       copy_region[3] = { std::min(delta_w, img_width - x),
+                                          std::min(delta_h, img_height - y),
+                                          1 };
                 err = clEnqueueCopyImage(
                     queue, streams[i * 2], streams[i * 2 + 1], copy_origin,
                     copy_origin, copy_region, 0, NULL, NULL);

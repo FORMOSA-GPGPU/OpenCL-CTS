@@ -14,6 +14,7 @@
 // limitations under the License.
 //
 #include "harness/compat.h"
+#include "harness/parseParameters.h"
 
 #include <memory>
 #include <stdio.h>
@@ -195,9 +196,9 @@ REGISTER_TEST(imagereadwrite)
     std::unique_ptr<unsigned short[]> rgba16_inptr, rgba16_outptr;
     std::unique_ptr<float[]> rgbafp_inptr, rgbafp_outptr;
     clMemWrapper            streams[3];
-    size_t img_width = 512;
-    size_t img_height = 512;
-    int                num_tries = 200;
+    size_t img_width = capSimtixDimension(2, 512);
+    size_t img_height = capSimtixDimension(2, 512);
+    int num_tries = capSimtixNumElements(200);
     int                i, j, err;
     MTdataHolder d(gRandomSeed);
 

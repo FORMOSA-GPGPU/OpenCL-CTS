@@ -14,12 +14,14 @@
 // limitations under the License.
 //
 #include "harness/compat.h"
+#include "harness/parseParameters.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <algorithm>
 
 #include "harness/typeWrappers.h"
 #include "harness/imageHelpers.h"
@@ -175,6 +177,14 @@ REGISTER_TEST(image_param)
     const size_t numSizes = sizeof( sizes ) / sizeof( sizes[ 0 ] );
     const size_t numFormats = sizeof( formats ) / sizeof( formats[ 0 ] );
     const size_t numAttempts = numSizes * numFormats;
+
+    if (gSimtixMode)
+    {
+        const size_t side =
+            std::max<size_t>(numSizes, capSimtixDimension(2, 512));
+        for (size_t index = 0; index < numSizes; ++index)
+            sizes[index] = side * (index + 1) / numSizes;
+    }
 
 
     clProgramWrapper program;

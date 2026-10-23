@@ -14,6 +14,7 @@
 // limitations under the License.
 //
 #include "harness/compat.h"
+#include "harness/parseParameters.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -27,10 +28,10 @@ REGISTER_TEST(simple_read_image_pitch)
 {
   cl_int err = CL_SUCCESS;
 
-  size_t imageW = 143;
-  size_t imageH = 151;
-  size_t bufferW = 151*4;
-  size_t bufferH = 151;
+  size_t imageW = capSimtixDimension(2, 143);
+  size_t imageH = capSimtixDimension(2, 151);
+  size_t bufferW = (imageW + 8) * 4;
+  size_t bufferH = imageH;
 
   size_t pixel_bytes = 4;
   size_t image_bytes = imageW * imageH * pixel_bytes;
@@ -95,10 +96,10 @@ REGISTER_TEST(simple_write_image_pitch)
 {
   cl_int err = CL_SUCCESS;
 
-  size_t imageW = 143;
-  size_t imageH = 151;
-  size_t bufferW = 151*4;
-  size_t bufferH = 151;
+  size_t imageW = capSimtixDimension(2, 143);
+  size_t imageH = capSimtixDimension(2, 151);
+  size_t bufferW = (imageW + 8) * 4;
+  size_t bufferH = imageH;
 
   size_t pixel_bytes = 4;
   size_t image_bytes = imageW * imageH * pixel_bytes;

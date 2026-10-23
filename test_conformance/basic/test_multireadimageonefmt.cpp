@@ -14,6 +14,7 @@
 // limitations under the License.
 //
 #include "harness/compat.h"
+#include "harness/parseParameters.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -100,8 +101,8 @@ REGISTER_TEST(mri_one)
     cl_program program;
     cl_kernel kernel;
     size_t threads[2];
-    size_t img_width = 512;
-    size_t img_height = 512;
+    size_t img_width = capSimtixDimension(2, 512);
+    size_t img_height = capSimtixDimension(2, 512);
     int i, err;
     size_t origin[3] = {0, 0, 0};
     size_t region[3] = {img_width, img_height, 1};

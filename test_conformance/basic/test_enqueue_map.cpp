@@ -14,6 +14,7 @@
 // limitations under the License.
 //
 #include "harness/compat.h"
+#include "harness/parseParameters.h"
 
 #include <algorithm>
 #include <stdio.h>
@@ -232,6 +233,7 @@ cl_int create_image_type(clMemWrapper &memObject, const cl_context context,
         case CL_MEM_OBJECT_IMAGE1D: {
             size_t image_size = std::min(
                 size_t(256), max_image_data_size / max_bytes_per_pixel);
+            image_size = capSimtixDimension(1, image_size);
             memObject = create_image_1d(context, mem_flag, &fmt, image_size, 0,
                                         (void *)data, nullptr, &error);
             img_region[0] = image_size;
@@ -241,6 +243,7 @@ cl_int create_image_type(clMemWrapper &memObject, const cl_context context,
             size_t image_size = std::min(
                 size_t(256),
                 (size_t)std::sqrt(max_image_data_size / max_bytes_per_pixel));
+            image_size = capSimtixDimension(2, image_size);
             memObject = create_image_2d(context, mem_flag, &fmt, image_size,
                                         image_size, 0, (void *)data, &error);
             img_region[0] = img_region[1] = image_size;
@@ -250,6 +253,7 @@ cl_int create_image_type(clMemWrapper &memObject, const cl_context context,
             size_t image_size = std::min(
                 size_t(256),
                 (size_t)std::cbrt(max_image_data_size / max_bytes_per_pixel));
+            image_size = capSimtixDimension(3, image_size);
             memObject =
                 create_image_3d(context, mem_flag, &fmt, image_size, image_size,
                                 image_size, 0, 0, (void *)data, &error);
@@ -260,6 +264,7 @@ cl_int create_image_type(clMemWrapper &memObject, const cl_context context,
             size_t image_size = std::min(
                 size_t(256),
                 (size_t)std::sqrt(max_image_data_size / max_bytes_per_pixel));
+            image_size = capSimtixDimension(2, image_size);
             memObject =
                 create_image_1d_array(context, mem_flag, &fmt, image_size,
                                       image_size, 0, 0, (void *)data, &error);
@@ -270,6 +275,7 @@ cl_int create_image_type(clMemWrapper &memObject, const cl_context context,
             size_t image_size = std::min(
                 size_t(256),
                 (size_t)std::cbrt(max_image_data_size / max_bytes_per_pixel));
+            image_size = capSimtixDimension(3, image_size);
             memObject = create_image_2d_array(
                 context, mem_flag, &fmt, image_size, image_size, image_size, 0,
                 0, (void *)data, &error);

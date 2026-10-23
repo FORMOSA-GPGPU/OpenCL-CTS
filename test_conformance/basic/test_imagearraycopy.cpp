@@ -15,6 +15,7 @@
 //
 #include "harness/compat.h"
 #include "harness/imageHelpers.h"
+#include "harness/parseParameters.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -36,9 +37,11 @@ static int test_negative_imagearraycopy_single_format(
         imgptr{ nullptr, free };
     clMemWrapper image;
     clMemWrapper buffer;
-    const size_t img_width = 512;
-    const size_t img_height = 512;
-    const size_t img_depth = (image_type == CL_MEM_OBJECT_IMAGE3D) ? 32 : 1;
+    const unsigned dimensions = image_type == CL_MEM_OBJECT_IMAGE3D ? 3 : 2;
+    const size_t img_width = capSimtixDimension(dimensions, 512);
+    const size_t img_height = capSimtixDimension(dimensions, 512);
+    const size_t img_depth = capSimtixDimension(
+        dimensions, image_type == CL_MEM_OBJECT_IMAGE3D ? 32 : 1);
     size_t elem_size;
     size_t buffer_size;
     cl_int err;
@@ -111,9 +114,11 @@ static int test_imagearraycopy_single_format(
     std::unique_ptr<cl_uchar, decltype(&free)> bufptr{ nullptr, free },
         imgptr{ nullptr, free };
     clMemWrapper buffer, image;
-    const size_t img_width = 512;
-    const size_t img_height = 512;
-    const size_t img_depth = (image_type == CL_MEM_OBJECT_IMAGE3D) ? 32 : 1;
+    const unsigned dimensions = image_type == CL_MEM_OBJECT_IMAGE3D ? 3 : 2;
+    const size_t img_width = capSimtixDimension(dimensions, 512);
+    const size_t img_height = capSimtixDimension(dimensions, 512);
+    const size_t img_depth = capSimtixDimension(
+        dimensions, image_type == CL_MEM_OBJECT_IMAGE3D ? 32 : 1);
     size_t elem_size;
     size_t buffer_size;
     cl_int err;

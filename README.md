@@ -23,6 +23,11 @@ buffer elements and transfer repetitions, retaining at least two elements.
 Allocation and context repetitions are limited to two. Image size stress
 uses small dimensions instead of the device maximum; this does not validate
 maximum-size allocations.
+Basic image read/write, copy, map, multi-read and multi-pass tests also bound pixels
+or voxels with the sample budget. Dimension stress retains a minimum side of
+four for non-power-of-two cases; image-parameter tests retain five distinct
+sizes, NPOT images retain a minimum side of three, and random copies retain a
+minimum side of two. Pitched transfers retain row padding.
 
 ## Building the CTS
 

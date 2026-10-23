@@ -14,12 +14,14 @@
 // limitations under the License.
 //
 #include "harness/compat.h"
+#include "harness/parseParameters.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <algorithm>
 
 #include "testBase.h"
 
@@ -104,6 +106,13 @@ REGISTER_TEST(imagenpot)
     {
         img_width = img_width_selection[m];
         img_height = img_height_selection[m];
+        if (gSimtixMode)
+        {
+            img_width = std::max(3u, capSimtixDimension(2, img_width));
+            img_height = std::max(3u, capSimtixDimension(2, img_height));
+            if ((img_width & (img_width - 1)) == 0) --img_width;
+            if ((img_height & (img_height - 1)) == 0) --img_height;
+        }
         input_ptr = generate_8888_image(img_width, img_height, d);
         output_ptr = (unsigned char*)malloc(sizeof(unsigned char) * 4 * img_width * img_height);
 

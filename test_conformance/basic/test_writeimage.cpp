@@ -15,6 +15,7 @@
 //
 #include "harness/compat.h"
 #include "harness/imageHelpers.h"
+#include "harness/parseParameters.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -127,8 +128,8 @@ test_writeimage(cl_device_id device, cl_context context, cl_command_queue queue,
 
     std::string kernel_name("test_");
 
-    size_t img_width = 512;
-    size_t img_height = 512;
+    size_t img_width = capSimtixDimension(2, 512);
+    size_t img_height = capSimtixDimension(2, 512);
 
     int err;
 

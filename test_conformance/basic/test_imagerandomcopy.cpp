@@ -14,12 +14,14 @@
 // limitations under the License.
 //
 #include "harness/compat.h"
+#include "harness/parseParameters.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <algorithm>
 
 #include "testBase.h"
 
@@ -123,8 +125,8 @@ REGISTER_TEST(imagerandomcopy)
     unsigned short    *rgba16_inptr, *rgba16_outptr;
     float            *rgbafp_inptr, *rgbafp_outptr;
     clMemWrapper            streams[6];
-    size_t img_width = 512;
-    size_t img_height = 512;
+    size_t img_width = std::max(2u, capSimtixDimension(2, 512));
+    size_t img_height = std::max(2u, capSimtixDimension(2, 512));
     int                i, j;
     cl_int          err;
     MTdata          d;
@@ -195,19 +197,29 @@ REGISTER_TEST(imagerandomcopy)
                                   region, 0, 0, p, 0, NULL, NULL);
         test_error(err, "clEnqueueWriteImage failed");
 
-        for (j=0; j<NUM_COPIES; j++)
+        for (j = 0; j < capSimtixNumElements(NUM_COPIES); j++)
         {
-            x[0] = (int)get_random_float(0, img_width, d);
-            do
+            if (gSimtixMode)
             {
-                x[1] = (int)get_random_float(0, img_width, d);
-            } while (x[1] <= x[0]);
+                x[0] = random_in_range(0, img_width - 2, d);
+                x[1] = random_in_range(x[0] + 1, img_width - 1, d);
+                y[0] = random_in_range(0, img_height - 2, d);
+                y[1] = random_in_range(y[0] + 1, img_height - 1, d);
+            }
+            else
+            {
+                x[0] = (int)get_random_float(0, img_width, d);
+                do
+                {
+                    x[1] = (int)get_random_float(0, img_width, d);
+                } while (x[1] <= x[0]);
 
-            y[0] = (int)get_random_float(0, img_height, d);
-            do
-            {
-                y[1] = (int)get_random_float(0, img_height, d);
-            } while (y[1] <= y[0]);
+                y[0] = (int)get_random_float(0, img_height, d);
+                do
+                {
+                    y[1] = (int)get_random_float(0, img_height, d);
+                } while (y[1] <= y[0]);
+            }
 
             delta_w = x[1] - x[0];
             delta_h = y[1] - y[0];

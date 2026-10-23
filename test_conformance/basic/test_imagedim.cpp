@@ -14,6 +14,7 @@
 // limitations under the License.
 //
 #include "harness/compat.h"
+#include "harness/parseParameters.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -97,6 +98,13 @@ int get_max_image_dimensions(cl_device_id device, size_t &max_img_width,
 
     max_img_width = std::min(max_image2d_width, max_img_dim);
     max_img_height = std::min(max_image2d_height, max_img_dim);
+
+    if (gSimtixMode)
+    {
+        const size_t side = std::max(4u, capSimtixDimension(2, max_img_dim));
+        max_img_width = std::min(max_img_width, side);
+        max_img_height = std::min(max_img_height, side);
+    }
 
     log_info("Adjusted maximum image size to test is %zu x %zu, which is a max "
              "mem size of %gMB.\n",

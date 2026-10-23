@@ -14,6 +14,7 @@
 // limitations under the License.
 //
 #include "harness/compat.h"
+#include "harness/parseParameters.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -144,8 +145,8 @@ verify_byte_image(unsigned char *image, unsigned char *outptr, int w, int h, int
 
 REGISTER_TEST(image_multipass_integer_coord)
 {
-    size_t img_width = 512;
-    size_t img_height = 512;
+    size_t img_width = capSimtixDimension(2, 512);
+    size_t img_height = capSimtixDimension(2, 512);
     cl_image_format     img_format;
 
     int                 num_input_streams = 8;
@@ -397,8 +398,8 @@ REGISTER_TEST(image_multipass_integer_coord)
 
 REGISTER_TEST(image_multipass_float_coord)
 {
-    size_t img_width = 512;
-    size_t img_height = 512;
+    size_t img_width = capSimtixDimension(2, 512);
+    size_t img_height = capSimtixDimension(2, 512);
     cl_image_format     img_format;
 
     int                 num_input_streams = 8;

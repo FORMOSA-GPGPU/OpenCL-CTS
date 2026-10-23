@@ -14,6 +14,7 @@
 // limitations under the License.
 //
 #include "harness/compat.h"
+#include "harness/parseParameters.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -57,8 +58,8 @@ REGISTER_TEST(image_r8)
     clMemWrapper streams[2];
     clProgramWrapper program;
     clKernelWrapper kernel;
-    const size_t img_width = 512;
-    const size_t img_height = 512;
+    const size_t img_width = capSimtixDimension(2, 512);
+    const size_t img_height = capSimtixDimension(2, 512);
     const size_t length = img_width * img_height;
     int err;
 

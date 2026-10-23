@@ -14,6 +14,7 @@
 // limitations under the License.
 //
 #include "harness/compat.h"
+#include "harness/parseParameters.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -21,6 +22,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <memory>
+#include <algorithm>
 
 #include "testBase.h"
 
@@ -115,9 +117,9 @@ static int test_imagecopy3d_impl(cl_device_id device, cl_context context,
     std::unique_ptr<unsigned short[]> rgba16_inptr, rgba16_outptr;
     std::unique_ptr<float[]> rgbafp_inptr, rgbafp_outptr;
     clMemWrapper streams[6];
-    size_t img_width = 128;
-    size_t img_height = 128;
-    size_t img_depth = 64;
+    size_t img_width = capSimtixDimension(3, 128);
+    size_t img_height = capSimtixDimension(3, 128);
+    size_t img_depth = capSimtixDimension(3, 64);
     int i;
     cl_int err;
     unsigned num_elements = img_width * img_height * img_depth * 4;
@@ -159,8 +161,9 @@ static int test_imagecopy3d_impl(cl_device_id device, cl_context context,
     for (i = 0; i < image_formats_count; i++)
     {
         void *p, *outp;
-        int x, y, z, delta_w = img_width / 8, delta_h = img_height / 16,
-                     delta_d = img_depth / 4;
+        int x, y, z, delta_w = std::max<size_t>(1, img_width / 8),
+                     delta_h = std::max<size_t>(1, img_height / 16),
+                     delta_d = std::max<size_t>(1, img_depth / 4);
 
         switch (i)
         {
@@ -197,9 +200,9 @@ static int test_imagecopy3d_impl(cl_device_id device, cl_context context,
                     origin[0] = x;
                     origin[1] = y;
                     origin[2] = z;
-                    region[0] = delta_w;
-                    region[1] = delta_h;
-                    region[2] = delta_d;
+                    region[0] = std::min<size_t>(delta_w, img_width - x);
+                    region[1] = std::min<size_t>(delta_h, img_height - y);
+                    region[2] = std::min<size_t>(delta_d, img_depth - z);
 
                     err = clEnqueueCopyImage(queue, streams[i * 2],
                                              streams[i * 2 + 1], origin, origin,
