@@ -14,8 +14,8 @@
 // limitations under the License.
 //
 #include "harness/compat.h"
+#include "harness/parseParameters.h"
 
-#include <algorithm>
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
@@ -99,7 +99,6 @@ static int run_kernel( cl_device_id device, cl_context context, cl_command_queue
     cl_ulong queueStart, submitStart, writeStart, writeEnd;
     size_t threads[3];
     size_t localThreads[3];
-    size_t maxWorkgroupSize;
     int err = 0;
 
     // set thread dimensions
@@ -128,20 +127,9 @@ static int run_kernel( cl_device_id device, cl_context context, cl_command_queue
                                       &read3d_kernel_code, "read3d");
     test_error(err, "create_single_kernel_helper failed");
 
-    err = clGetDeviceInfo(device, CL_DEVICE_MAX_WORK_ITEM_SIZES,
-                          3 * sizeof(size_t), (size_t *)localThreads, NULL);
-    test_error(err, "clGetDeviceInfo(CL_DEVICE_MAX_WORK_ITEM_SIZES) failed");
-    err = clGetKernelWorkGroupInfo(kernel, device, CL_KERNEL_WORK_GROUP_SIZE,
-                                   sizeof(size_t), &maxWorkgroupSize, NULL);
-    test_error(err, "clGetDeviceInfo(CL_KERNEL_WORK_GROUP_SIZE) failed\n");
-
-    localThreads[0] =
-        std::min({ localThreads[0], threads[0], maxWorkgroupSize });
-    localThreads[1] = std::min(
-        { localThreads[1], threads[1], maxWorkgroupSize / localThreads[0] });
-    localThreads[2] =
-        std::min({ localThreads[2], threads[2],
-                   maxWorkgroupSize / (localThreads[0] * localThreads[1]) });
+    err = get_max_common_3D_work_group_size(context, kernel, threads,
+                                            localThreads);
+    test_error(err, "get_max_common_3D_work_group_size failed");
 
     // create kernel args object and set arg values.
     // set the args values
@@ -206,7 +194,9 @@ REGISTER_TEST(execute_multipass)
 {
     cl_uchar *inptr;
     cl_uchar *outptr;
-    int w = 256, h = 128, d = 32;
+    int w = capSimtixDimension(3, 256);
+    int h = capSimtixDimension(3, 128);
+    int d = capSimtixDimension(3, 32);
     int nChannels = 4;
     int nElements = w * h * d * nChannels;
     int err = 0;

@@ -14,6 +14,7 @@
 // limitations under the License.
 //
 #include "harness/compat.h"
+#include "harness/parseParameters.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -364,7 +365,8 @@ REGISTER_TEST(execute)
 {
     uchar    *inptr;
     uchar    *outptr[2];
-    int        w = 256, h = 256;
+    int w = capSimtixDimension(2, 256);
+    int h = capSimtixDimension(2, 256);
     int        nChannels = 4;
     int        nElements = w * h * nChannels;
     int        err = 0;
