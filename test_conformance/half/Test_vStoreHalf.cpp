@@ -520,6 +520,10 @@ int Test_vStoreHalf_private(cl_device_id device, f2h referenceFunc,
             "   vstore_half3",
             roundName,
             "( vload3(i,p-adjust), lid, (__local half *)(&data[0]) );\n"
+            "   if(last_i == i && extra_last_thread != 0) {\n"
+            "     for(uint j = 0; j < extra_last_thread; j++)\n"
+            "       data[3*lid+j] = data[3*lid+adjust+j];\n"
+            "   }\n"
             "   barrier( CLK_LOCAL_MEM_FENCE ); \n"
             "   if (get_group_id(0) == (get_num_groups(0) - 1) &&\n"
             "       extra_last_thread != 0) {\n"
@@ -527,7 +531,7 @@ int Test_vStoreHalf_private(cl_device_id device, f2h referenceFunc,
             "   }\n"
             "   async_event = async_work_group_copy(\n"
             "       (__global ushort*)(f+3*(i-lid)),\n"
-            "       (__local ushort *)(&data[adjust]),\n"
+            "       (__local ushort *)(&data[0]),\n"
             "       lsize*3-adjust, 0);\n" // investigate later
             "   wait_group_events(1, &async_event);\n"
             "}\n"
@@ -658,6 +662,10 @@ int Test_vStoreHalf_private(cl_device_id device, f2h referenceFunc,
             "   vstore_half3",
             roundName,
             "( vload3(i,p-adjust), lid, (__local half *)(&data[0]) );\n"
+            "   if(last_i == i && extra_last_thread != 0) {\n"
+            "     for(uint j = 0; j < extra_last_thread; j++)\n"
+            "       data[3*lid+j] = data[3*lid+adjust+j];\n"
+            "   }\n"
             "   barrier( CLK_LOCAL_MEM_FENCE ); \n"
             "   if (get_group_id(0) == (get_num_groups(0) - 1) &&\n"
             "       extra_last_thread != 0) {\n"
@@ -665,7 +673,7 @@ int Test_vStoreHalf_private(cl_device_id device, f2h referenceFunc,
             "   }\n"
             "   async_event = async_work_group_copy(\n"
             "       (__global ushort *)(f+3*(i-lid)),\n"
-            "       (__local ushort *)(&data[adjust]),\n"
+            "       (__local ushort *)(&data[0]),\n"
             "       lsize*3-adjust, 0);\n" // investigate later
             "   wait_group_events(1, &async_event);\n"
             "}\n"
